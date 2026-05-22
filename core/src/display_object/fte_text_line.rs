@@ -130,6 +130,19 @@ fn typo_metrics(line: &LayoutLine<'_>, text: &WStr) -> (f32, f32) {
     )
 }
 
+fn trailing_trimmed_width(atoms: &[Atom], chars: &[u16], start: usize) -> f32 {
+    for (i, atom) in atoms.iter().enumerate().rev() {
+        let blank = match chars.get(start + i) {
+            Some(&c) => matches!(c, 0x20 | 0x09 | 0x0a | 0x0d | 0x2028 | 0x2029),
+            None => true,
+        };
+        if !blank {
+            return atom.x + atom.width;
+        }
+    }
+    0.0
+}
+
 #[derive(Collect)]
 #[collect(no_drop)]
 pub struct FteLine<'gc> {
@@ -156,6 +169,32 @@ impl<'gc> FteLine<'gc> {
             descent,
         }
     }
+
+    pub fn ascent(&self) -> f32 {
+        self.ascent
+    }
+
+    pub fn descent(&self) -> f32 {
+        self.descent
+    }
+
+    pub fn width(&self) -> f32 {
+        self.html_line.bounds().width().to_pixels() as f32
+    }
+
+    pub fn text_width(&self) -> f32 {
+        let start = self.html_line.text_range().start;
+        let chars: Vec<u16> = self.text.iter().collect();
+        trailing_trimmed_width(&self.atoms, &chars, start)
+    }
+
+    pub fn raw_text_length(&self) -> usize {
+        self.html_line.text_range().len()
+    }
+
+    pub fn atoms(&self) -> &[Atom] {
+        &self.atoms
+    }
 }
 
 #[cfg(test)]
@@ -168,6 +207,24 @@ mod tests {
         assert_eq!(mixed, (14.0, 3.0));
         let empty = combine_typo_metrics(std::iter::empty(), (8.0, 2.5));
         assert_eq!(empty, (8.0, 2.5));
+    }
+
+    #[test]
+    fn text_width_drops_trailing_whitespace() {
+        let atom = |x: f32, width: f32| Atom {
+            char_start: 0,
+            char_end: 1,
+            x,
+            width,
+            bidi_level: 0,
+            word_boundary_on_left: false,
+        };
+        let atoms = [atom(0.0, 10.0), atom(10.0, 12.0), atom(22.0, 6.0)];
+        let chars = [b'a' as u16, b'b' as u16, b' ' as u16];
+        assert_eq!(trailing_trimmed_width(&atoms, &chars, 0), 22.0);
+
+        let blanks = [atom(0.0, 6.0), atom(6.0, 6.0)];
+        assert_eq!(trailing_trimmed_width(&blanks, &[0x20, 0x20], 0), 0.0);
     }
 
     #[test]
