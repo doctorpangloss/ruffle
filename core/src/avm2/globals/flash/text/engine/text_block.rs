@@ -350,9 +350,105 @@ pub fn create_text_line<'gc>(
     Ok(instance.into())
 }
 
+fn recreate_width(raw_width: f64, specified_width: f64) -> f64 {
+    if raw_width >= 1_000_000.0 {
+        specified_width
+    } else {
+        raw_width
+    }
+}
+
+pub fn recreate_text_line<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let this = this.as_object().unwrap();
+
+    let text_line = args.get_object(activation, 0, "textLine")?;
+    let previous_text_line = args.try_get_object(1);
+    let raw_width = args.get_f64(2);
+
+    let specified = text_line
+        .get_slot(line_slots::_SPECIFIED_WIDTH)
+        .coerce_to_number(activation)
+        .unwrap_or(raw_width);
+    let width = recreate_width(raw_width, specified);
+
+    let Some((start, full_text, content)) =
+        resolve_text_content(activation, this, previous_text_line)?
+    else {
+        return Ok(text_line.into());
+    };
+
+    let Some((html_line, text, begin)) =
+        lay_out_first_line(activation, full_text, start, content, width)?
+    else {
+        return Ok(text_line.into());
+    };
+
+    let fte_line = FteLine::new(html_line, text, begin);
+    let raw_text_length = fte_line.raw_text_length();
+
+    if let Some(fte) = text_line
+        .as_display_object()
+        .and_then(|d| d.as_fte_text_line())
+    {
+        fte.set_line(activation.context, fte_line);
+    }
+
+    text_line.set_slot(line_slots::_TEXT_BLOCK, this.into(), activation)?;
+    text_line.set_slot(line_slots::_SPECIFIED_WIDTH, width.into(), activation)?;
+    text_line.set_slot(
+        line_slots::_RAW_TEXT_LENGTH,
+        (raw_text_length as i32).into(),
+        activation,
+    )?;
+    text_line.set_slot(
+        line_slots::_TEXT_BLOCK_BEGIN_INDEX,
+        (start as i32).into(),
+        activation,
+    )?;
+    {
+        let valid_str = crate::string::AvmString::new_utf8(activation.gc(), "valid");
+        text_line.set_slot(line_slots::_VALIDITY, valid_str.into(), activation)?;
+    }
+
+    this.set_slot(
+        block_slots::_TEXT_LINE_CREATION_RESULT,
+        istr!("success").into(),
+        activation,
+    )?;
+
+    if let Some(prev) = previous_text_line {
+        prev.set_slot(line_slots::_NEXT_LINE, text_line.into(), activation)?;
+        text_line.set_slot(line_slots::_PREVIOUS_LINE, prev.into(), activation)?;
+    } else {
+        text_line.set_slot(line_slots::_PREVIOUS_LINE, Value::Null, activation)?;
+        this.set_slot(block_slots::_FIRST_LINE, text_line.into(), activation)?;
+    }
+    let current_last = this.get_slot(block_slots::_LAST_LINE).as_object();
+    let should_set_last = match (previous_text_line, current_last) {
+        (Some(prev), Some(last)) => prev.as_ptr() == last.as_ptr(),
+        (None, None) => true,
+        _ => false,
+    };
+    if should_set_last {
+        this.set_slot(block_slots::_LAST_LINE, text_line.into(), activation)?;
+    }
+
+    Ok(text_line.into())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn recreate_width_reuses_the_original_width_for_the_sentinel() {
+        assert_eq!(recreate_width(1_000_000.0, 320.0), 320.0);
+        assert_eq!(recreate_width(250.0, 320.0), 250.0);
+    }
 
     #[test]
     fn next_line_start_resumes_after_the_previous_line() {
