@@ -1,7 +1,7 @@
 use ruffle_macros::istr;
 
 use crate::avm2::activation::Activation;
-use crate::avm2::error::Error;
+use crate::avm2::error::{Error, make_error_2175};
 use crate::avm2::globals::flash::display::display_object::initialize_for_allocator;
 use crate::avm2::globals::methods::flash_text_engine_content_element as element_methods;
 use crate::avm2::globals::slots::flash_text_engine_content_element as element_slots;
@@ -15,7 +15,7 @@ use crate::avm2::value::Value;
 use crate::avm2_stub_method;
 use crate::display_object::{EditText, TDisplayObject};
 use crate::html::TextFormat;
-use crate::string::WStr;
+use crate::string::{WStr, WString};
 
 #[allow(dead_code)]
 fn next_line_start(previous: Option<(usize, usize)>) -> usize {
@@ -67,6 +67,73 @@ fn resolve_text_content<'gc>(
     }
 
     Ok(Some((start, full_text, content.as_object().unwrap())))
+}
+
+#[allow(dead_code)]
+fn finite_baseline_shift(value: f64) -> Option<f64> {
+    value.is_finite().then_some(value)
+}
+
+#[allow(dead_code)]
+fn format_from_content<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Object<'gc>,
+) -> Result<(TextFormat, f64, f64), Error<'gc>> {
+    let mut format = TextFormat {
+        font: Some(WString::from_utf8("_sans")),
+        size: Some(12.0),
+        color: Some(swf::Color::from_rgb(0, 0xff)),
+        ..Default::default()
+    };
+
+    let Some(ef) = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object() else {
+        return Err(make_error_2175(activation));
+    };
+
+    let color = ef.get_slot(format_slots::_COLOR).coerce_to_u32(activation)?;
+    format.color = Some(swf::Color::from_rgb(color & 0xff_ffff, 0xff));
+
+    let size = ef
+        .get_slot(format_slots::_FONT_SIZE)
+        .coerce_to_number(activation)?;
+    format.size = Some(size);
+
+    let tracking_left = ef
+        .get_slot(format_slots::_TRACKING_LEFT)
+        .coerce_to_number(activation)?;
+    let tracking_right = ef
+        .get_slot(format_slots::_TRACKING_RIGHT)
+        .coerce_to_number(activation)?;
+    format.letter_spacing = Some(tracking_left + tracking_right);
+
+    let kerning = ef
+        .get_slot(format_slots::_KERNING)
+        .coerce_to_string(activation)?;
+    format.kerning = Some(kerning.to_utf8_lossy() != "off");
+
+    let baseline_shift = ef
+        .get_slot(format_slots::_BASELINE_SHIFT)
+        .coerce_to_number(activation)?;
+    format.baseline_shift = finite_baseline_shift(baseline_shift);
+
+    if let Value::Object(fd) = ef.get_slot(format_slots::_FONT_DESCRIPTION) {
+        let name = fd
+            .get_slot(font_desc_slots::_FONT_NAME)
+            .coerce_to_string(activation)?;
+        format.font = Some(WString::from(name.as_wstr()));
+
+        let weight = fd
+            .get_slot(font_desc_slots::_FONT_WEIGHT)
+            .coerce_to_string(activation)?;
+        format.bold = Some(weight.to_utf8_lossy() == "bold");
+
+        let posture = fd
+            .get_slot(font_desc_slots::_FONT_POSTURE)
+            .coerce_to_string(activation)?;
+        format.italic = Some(posture.to_utf8_lossy() == "italic");
+    }
+
+    Ok((format, tracking_left, tracking_right))
 }
 
 pub fn create_text_line<'gc>(
@@ -233,11 +300,18 @@ fn apply_format<'gc>(
 
 #[cfg(test)]
 mod tests {
-    use super::next_line_start;
+    use super::{finite_baseline_shift, next_line_start};
 
     #[test]
     fn next_line_start_resumes_after_the_previous_line() {
         assert_eq!(next_line_start(Some((10, 7))), 17);
         assert_eq!(next_line_start(None), 0);
+    }
+
+    #[test]
+    fn baseline_shift_keeps_finite_values_and_drops_nan() {
+        assert_eq!(finite_baseline_shift(3.5), Some(3.5));
+        assert_eq!(finite_baseline_shift(-2.0), Some(-2.0));
+        assert_eq!(finite_baseline_shift(f64::NAN), None);
     }
 }
