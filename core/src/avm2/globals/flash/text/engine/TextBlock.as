@@ -222,5 +222,79 @@ package flash.text.engine {
             }
             return null;
         }
+
+        public function findNextAtomBoundary(charPos:int):int {
+            var len:int = _contentLength();
+            if (charPos < 0 || charPos >= len) {
+                throw new RangeError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            var next:int = charPos + 1;
+            if (next > len) {
+                next = len;
+            }
+            return next;
+        }
+
+        public function findPreviousAtomBoundary(charPos:int):int {
+            var len:int = _contentLength();
+            if (charPos < 0 || charPos >= len) {
+                throw new RangeError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            if (charPos == 0) {
+                throw new ArgumentError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            return charPos - 1;
+        }
+
+        public function findNextWordBoundary(charPos:int):int {
+            var len:int = _contentLength();
+            if (charPos < 0 || charPos >= len) {
+                throw new RangeError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            var text:String = this._content.text;
+            if (_isWhitespace(text.charCodeAt(charPos))) {
+                return charPos + 1;
+            }
+            var i:int = charPos;
+            while (i < len && !_isWhitespace(text.charCodeAt(i))) {
+                i++;
+            }
+            return i;
+        }
+
+        public function findPreviousWordBoundary(charPos:int):int {
+            var len:int = _contentLength();
+            if (charPos < 0 || charPos >= len) {
+                throw new RangeError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            if (charPos == 0) {
+                throw new ArgumentError("Error #2006: The supplied index is out of bounds.", 2006);
+            }
+            var text:String = this._content.text;
+            if (_isWhitespace(text.charCodeAt(charPos - 1))) {
+                return charPos - 1;
+            }
+            var i:int = charPos - 1;
+            while (i > 0 && !_isWhitespace(text.charCodeAt(i - 1))) {
+                i--;
+            }
+            return i;
+        }
+
+        private function _contentLength():int {
+            return (this._content != null && this._content.text != null) ? this._content.text.length : 0;
+        }
+
+        private static function _isWhitespace(code:int):Boolean {
+            return code == 0x20 || code == 0x09 || code == 0x0A
+                || code == 0x0D || code == 0x2028 || code == 0x2029;
+        }
+
+        [API("670")]
+        public function releaseLineCreationData():void {}
+
+        public function dump():String {
+            return "<TextBlock>";
+        }
     }
 }

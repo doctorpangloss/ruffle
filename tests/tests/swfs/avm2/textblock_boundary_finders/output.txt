@@ -1,0 +1,25 @@
+nextAtom(0): 1
+nextAtom(5): 6
+nextAtom(14): 15
+prevAtom(1): 0
+prevAtom(14): 13
+nextWord(0): 5
+nextWord(5): 6
+nextWord(7): 11
+prevWord(7): 6
+prevWord(14): 12
+multi nextWord(2): 3
+multi nextWord(3): 4
+multi nextWord(4): 6
+multi prevWord(2): 0
+multi prevWord(3): 2
+multi prevWord(4): 3
+multi prevWord(6): 4
+multi prevWord(7): 6
+nextAtom(-1): RangeError #2006
+nextAtom(15): RangeError #2006
+prevAtom(0): ArgumentError #2006
+prevAtom(15): RangeError #2006
+nextWord(15): RangeError #2006
+prevWord(0): ArgumentError #2006
+prevWord(15): RangeError #2006
