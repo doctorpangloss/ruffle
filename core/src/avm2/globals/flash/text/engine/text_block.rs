@@ -17,6 +17,58 @@ use crate::display_object::{EditText, TDisplayObject};
 use crate::html::TextFormat;
 use crate::string::WStr;
 
+#[allow(dead_code)]
+fn next_line_start(previous: Option<(usize, usize)>) -> usize {
+    match previous {
+        Some((begin, raw_length)) => begin + raw_length,
+        None => 0,
+    }
+}
+
+#[allow(dead_code)]
+fn resolve_text_content<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    text_block: Object<'gc>,
+    previous_text_line: Option<Object<'gc>>,
+) -> Result<Option<(usize, crate::string::AvmString<'gc>, Object<'gc>)>, Error<'gc>> {
+    let content = text_block.get_slot(block_slots::_CONTENT);
+    if matches!(content, Value::Null) {
+        return Ok(None);
+    }
+
+    let full_text = {
+        let txt = content
+            .call_method(element_methods::GET_TEXT, &[], activation)
+            .unwrap_or_else(|_| istr!("").into());
+        if matches!(txt, Value::Null) {
+            return Ok(None);
+        }
+        txt.coerce_to_string(activation)
+            .expect("Guaranteed by AS bindings")
+    };
+
+    let start = next_line_start(match previous_text_line {
+        Some(prev) => Some((
+            prev.get_slot(line_slots::_TEXT_BLOCK_BEGIN_INDEX)
+                .coerce_to_i32(activation)? as usize,
+            prev.get_slot(line_slots::_RAW_TEXT_LENGTH)
+                .coerce_to_i32(activation)? as usize,
+        )),
+        None => None,
+    });
+
+    if start >= full_text.len() {
+        text_block.set_slot(
+            block_slots::_TEXT_LINE_CREATION_RESULT,
+            istr!("complete").into(),
+            activation,
+        )?;
+        return Ok(None);
+    }
+
+    Ok(Some((start, full_text, content.as_object().unwrap())))
+}
+
 pub fn create_text_line<'gc>(
     activation: &mut Activation<'_, 'gc>,
     this: Value<'gc>,
@@ -177,4 +229,15 @@ fn apply_format<'gc>(
     display_object.set_height(activation.context, measured_text.1.to_pixels());
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::next_line_start;
+
+    #[test]
+    fn next_line_start_resumes_after_the_previous_line() {
+        assert_eq!(next_line_start(Some((10, 7))), 17);
+        assert_eq!(next_line_start(None), 0);
+    }
 }
