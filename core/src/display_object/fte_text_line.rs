@@ -4,7 +4,8 @@
 
 use crate::font::FontLike;
 use crate::html::LayoutLine;
-use crate::string::WStr;
+use crate::string::{WStr, WString};
+use gc_arena::Collect;
 use swf::Twips;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -97,10 +98,77 @@ fn build_atoms(line: &LayoutLine<'_>, text: &WStr, text_block_begin: usize) -> V
     atoms
 }
 
+fn combine_typo_metrics(
+    per_font: impl Iterator<Item = (f32, f32)>,
+    fallback: (f32, f32),
+) -> (f32, f32) {
+    let mut out: Option<(f32, f32)> = None;
+    for (a, d) in per_font {
+        out = Some(match out {
+            Some((oa, od)) => (oa.max(a), od.max(d)),
+            None => (a, d),
+        });
+    }
+    out.unwrap_or(fallback)
+}
+
+fn typo_metrics(line: &LayoutLine<'_>, text: &WStr) -> (f32, f32) {
+    let per_font = line.boxes_iter().filter_map(|lbox| {
+        let (_, _, font_set, params, _) = lbox.as_renderable_text(text)?;
+        let font = font_set.main_font();
+        Some((
+            font.typo_ascent(params.height()).to_pixels() as f32,
+            font.typo_descent(params.height()).to_pixels() as f32,
+        ))
+    });
+    combine_typo_metrics(
+        per_font,
+        (
+            line.ascent().to_pixels() as f32,
+            line.descent().to_pixels() as f32,
+        ),
+    )
+}
+
+#[derive(Collect)]
+#[collect(no_drop)]
+pub struct FteLine<'gc> {
+    html_line: LayoutLine<'gc>,
+    #[collect(require_static)]
+    text: WString,
+    #[collect(require_static)]
+    atoms: Vec<Atom>,
+    #[collect(require_static)]
+    ascent: f32,
+    #[collect(require_static)]
+    descent: f32,
+}
+
+impl<'gc> FteLine<'gc> {
+    pub fn new(html_line: LayoutLine<'gc>, text: WString, text_block_begin: usize) -> Self {
+        let atoms = build_atoms(&html_line, &text, text_block_begin);
+        let (ascent, descent) = typo_metrics(&html_line, &text);
+        Self {
+            html_line,
+            text,
+            atoms,
+            ascent,
+            descent,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::string::WString;
+
+    #[test]
+    fn typo_metrics_take_the_max_across_fonts_and_fall_back_when_empty() {
+        let mixed = combine_typo_metrics([(10.0, 3.0), (14.0, 2.0)].into_iter(), (0.0, 0.0));
+        assert_eq!(mixed, (14.0, 3.0));
+        let empty = combine_typo_metrics(std::iter::empty(), (8.0, 2.5));
+        assert_eq!(empty, (8.0, 2.5));
+    }
 
     #[test]
     fn kern_split_makes_adjacent_atoms_tile_at_the_midpoint() {
