@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use crate::avm2::StageObject as Avm2StageObject;
-use crate::context::UpdateContext;
+use crate::context::{RenderContext, UpdateContext};
 use crate::display_object::interactive::InteractiveObjectBase;
 use crate::display_object::{BoundsMode, DisplayObjectBase};
 use crate::font::FontLike;
@@ -16,6 +16,7 @@ use gc_arena::barrier::unlock;
 use gc_arena::lock::{Lock, RefLock};
 use gc_arena::{Collect, Gc, Mutation};
 use ruffle_common::utils::HasPrefixField;
+use ruffle_render::transform::Transform;
 use std::cell::Ref;
 use std::sync::Arc;
 use unicode_segmentation::UnicodeSegmentation;
@@ -263,6 +264,10 @@ fn baseline_origin_bounds(width: f32, ascent: f32, descent: f32) -> Rectangle<Tw
     }
 }
 
+fn baseline_shift_twips(shift: Option<f64>) -> Twips {
+    shift.map(Twips::from_pixels).unwrap_or(Twips::ZERO)
+}
+
 impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
     fn base(self) -> Gc<'gc, DisplayObjectBase<'gc>> {
         let interactive: Gc<'gc, InteractiveObjectBase<'gc>> = HasPrefixField::as_prefix_gc(self.0);
@@ -296,6 +301,54 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
     }
 
     fn replace_with(self, _context: &mut UpdateContext<'gc>, _id: CharacterId) {}
+
+    fn render_self(self, context: &mut RenderContext<'_, 'gc>) {
+        let line = self.0.line.borrow();
+
+        let baseline = line.html_line.bounds().origin().y() + line.html_line.ascent();
+        context.transform_stack.push(&Transform {
+            matrix: Matrix::translate(Twips::ZERO, -baseline),
+            ..Default::default()
+        });
+
+        for lbox in line.html_line.boxes_iter() {
+            let origin = lbox.bounds().origin();
+            let renderable = lbox.as_renderable_text(&line.text);
+            let baseline_shift = match &renderable {
+                Some((_, tf, ..)) => baseline_shift_twips(tf.baseline_shift),
+                None => Twips::ZERO,
+            };
+            context.transform_stack.push(&Transform {
+                matrix: Matrix::translate(origin.x(), origin.y() + baseline_shift),
+                ..Default::default()
+            });
+
+            if let Some((text, _tf, font, params, color)) = renderable {
+                let mut transform: Transform = Default::default();
+                transform.color_transform.set_mult_color(color);
+                font.evaluate(
+                    text,
+                    transform,
+                    params,
+                    &mut |_pos, glyph_transform, glyph, _advance, _x| {
+                        if glyph.renderable(context) {
+                            context.transform_stack.push(glyph_transform);
+                            glyph.render(context);
+                            context.transform_stack.pop();
+                        }
+                    },
+                );
+            }
+
+            if let Some(drawing) = lbox.as_renderable_drawing() {
+                drawing.render(context);
+            }
+
+            context.transform_stack.pop();
+        }
+
+        context.transform_stack.pop();
+    }
 
     fn self_bounds(self, _mode: BoundsMode) -> Rectangle<Twips> {
         let line = self.0.line.borrow();
@@ -331,6 +384,13 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn baseline_shift_converts_pixels_and_defaults_to_zero() {
+        assert_eq!(baseline_shift_twips(None), Twips::ZERO);
+        assert_eq!(baseline_shift_twips(Some(3.0)), Twips::from_pixels(3.0));
+        assert_eq!(baseline_shift_twips(Some(-2.0)), Twips::from_pixels(-2.0));
+    }
 
     #[test]
     fn self_bounds_place_the_origin_on_the_baseline() {
