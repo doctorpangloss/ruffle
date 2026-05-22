@@ -1,0 +1,7 @@
+num_frames = 1
+
+[fonts.probe]
+family = "GposKernProbe"
+path = "gpos_kern_conflict.ttf"
+bold = false
+italic = false

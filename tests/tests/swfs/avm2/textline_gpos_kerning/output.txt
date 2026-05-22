@@ -1,0 +1,3 @@
+GPOS_PROBE kerning=off textWidth=134
+GPOS_PROBE kerning=on  textWidth=101.75
+GPOS_PROBE delta=-32.25
