@@ -118,15 +118,9 @@ package flash.text.engine {
             return -1;
         }
 
-        public function getAtomIndexAtCharIndex(charIndex:int):int {
-            stub_method("flash.text.engine.TextLine", "getAtomIndexAtCharIndex");
-            return -1;
-        }
+        public native function getAtomIndexAtCharIndex(charIndex:int):int;
 
-        public function getAtomBidiLevel(index:int):int {
-            stub_method("flash.text.engine.TextLine", "getAtomBidiLevel");
-            return 0;
-        }
+        public native function getAtomBidiLevel(index:int):int;
 
         public function getAtomBounds(index:int):Rectangle {
             stub_method("flash.text.engine.TextLine", "getAtomBounds");
@@ -143,25 +137,16 @@ package flash.text.engine {
             return null;
         }
 
-        public function getAtomTextBlockBeginIndex(index:int):int {
-            stub_method("flash.text.engine.TextLine", "getAtomTextBlockBeginIndex");
-            return 0;
-        }
+        public native function getAtomTextBlockBeginIndex(index:int):int;
 
-        public function getAtomTextBlockEndIndex(index:int):int {
-            stub_method("flash.text.engine.TextLine", "getAtomTextBlockEndIndex");
-            return 0;
-        }
+        public native function getAtomTextBlockEndIndex(index:int):int;
 
         public function getAtomTextRotation(index:int):String {
             stub_method("flash.text.engine.TextLine", "getAtomTextRotation");
             return TextRotation.ROTATE_0;
         }
 
-        public function getAtomWordBoundaryOnLeft(index:int):Boolean {
-            stub_method("flash.text.engine.TextLine", "getAtomWordBoundaryOnLeft");
-            return false;
-        }
+        public native function getAtomWordBoundaryOnLeft(index:int):Boolean;
 
         // This function does nothing in Flash Player 32
         public function flushAtomData():void { }

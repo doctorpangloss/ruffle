@@ -4,7 +4,7 @@ use crate::avm2::activation::Activation;
 use crate::avm2::error::Error;
 use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
-use crate::display_object::FteLine;
+use crate::display_object::{Atom, FteLine};
 use std::cell::Ref;
 
 fn fte_line<'gc>(this: Value<'gc>) -> Option<Ref<'gc, FteLine<'gc>>> {
@@ -91,9 +91,113 @@ pub fn get_baseline_position<'gc>(
     Ok((position as f64).into())
 }
 
+fn atom_at<'a>(line: &'a FteLine, index: i32) -> Option<&'a Atom> {
+    if index < 0 {
+        return None;
+    }
+    line.atoms().get(index as usize)
+}
+
+fn atom_index_for_char(char_index: i32, first_char_start: usize, atom_count: usize) -> i32 {
+    if char_index < 0 || (char_index as usize) < first_char_start {
+        return -1;
+    }
+    let offset = char_index as usize - first_char_start;
+    if offset < atom_count {
+        offset as i32
+    } else {
+        -1
+    }
+}
+
+pub fn get_atom_bidi_level<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok(0.into());
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return Ok(0.into());
+    };
+    Ok((atom.bidi_level as i32).into())
+}
+
+pub fn get_atom_index_at_char_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let char_index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let index = match line.atoms().first() {
+        Some(first) => atom_index_for_char(char_index, first.char_start, line.atoms().len()),
+        None => -1,
+    };
+    Ok(index.into())
+}
+
+pub fn get_atom_text_block_begin_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return Ok((-1).into());
+    };
+    Ok((atom.char_start as i32).into())
+}
+
+pub fn get_atom_text_block_end_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return Ok((-1).into());
+    };
+    Ok((atom.char_end as i32).into())
+}
+
+pub fn get_atom_word_boundary_on_left<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok(false.into());
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return Ok(false.into());
+    };
+    Ok(atom.word_boundary_on_left.into())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::baseline_position;
+    use super::*;
+
+    #[test]
+    fn atom_index_for_char_offsets_from_the_lines_first_atom() {
+        assert_eq!(atom_index_for_char(4, 4, 3), 0);
+        assert_eq!(atom_index_for_char(6, 4, 3), 2);
+        assert_eq!(atom_index_for_char(3, 4, 3), -1);
+        assert_eq!(atom_index_for_char(7, 4, 3), -1);
+        assert_eq!(atom_index_for_char(-1, 4, 3), -1);
+    }
 
     #[test]
     fn baseline_position_maps_the_named_baselines() {
