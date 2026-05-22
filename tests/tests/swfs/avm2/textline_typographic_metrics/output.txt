@@ -1,0 +1,2 @@
+ascent: 72.75
+descent: 21

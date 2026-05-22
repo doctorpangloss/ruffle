@@ -241,6 +241,8 @@ pub struct FontFace {
 
     ascender: i32,
     descender: i32,
+    typo_ascender: i32,
+    typo_descender: i32,
     leading: i16,
     scale: f32,
     might_have_kerning: bool,
@@ -255,6 +257,13 @@ impl FontFace {
 
         let ascender = face.ascender() as i32;
         let descender = -face.descender() as i32;
+        let (typo_ascender, typo_descender) = match face.tables().os2 {
+            Some(os2) => (
+                os2.typographic_ascender() as i32,
+                -os2.typographic_descender() as i32,
+            ),
+            None => (ascender, descender),
+        };
         let leading = face.line_gap();
         let scale = face.units_per_em() as f32;
         let glyphs = vec![OnceCell::new(); face.number_of_glyphs() as usize];
@@ -277,6 +286,8 @@ impl FontFace {
             glyphs,
             ascender,
             descender,
+            typo_ascender,
+            typo_descender,
             leading,
             scale,
             might_have_kerning,
@@ -491,6 +502,16 @@ impl GlyphSource {
             GlyphSource::FontFace { metrics, .. } => *metrics,
             GlyphSource::ExternalRenderer { font_renderer, .. } => font_renderer.get_font_metrics(),
             GlyphSource::Empty => FontMetrics::ZERO,
+        }
+    }
+
+    pub fn typo_metrics(&self) -> (i32, i32) {
+        match self {
+            GlyphSource::FontFace { face, .. } => (face.typo_ascender, face.typo_descender),
+            other => {
+                let m = other.metrics();
+                (m.ascent, m.descent)
+            }
         }
     }
 }
@@ -810,6 +831,16 @@ impl<'gc> Font<'gc> {
 
     pub fn has_layout(self) -> bool {
         self.0.has_layout
+    }
+
+    pub fn typo_ascent(self, height: Twips) -> Twips {
+        let (ascender, _) = self.0.glyphs.typo_metrics();
+        Twips::new((ascender as f32 * height.get() as f32 / self.0.scale) as i32)
+    }
+
+    pub fn typo_descent(self, height: Twips) -> Twips {
+        let (_, descender) = self.0.glyphs.typo_metrics();
+        Twips::new((descender as f32 * height.get() as f32 / self.0.scale) as i32)
     }
 }
 
@@ -1574,5 +1605,68 @@ impl<'gc> FontLike<'gc> for FontSet<'gc> {
 
     fn font_type(&self) -> FontType {
         self.0.main_font.font_type()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn test_dir(name: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap()
+            .join("tests/tests/swfs/avm2")
+            .join(name)
+    }
+
+    fn parse_value(text: &str, prefix: &str) -> f32 {
+        text.lines()
+            .find(|l| l.starts_with(prefix))
+            .and_then(|l| l.strip_prefix(prefix))
+            .and_then(|s| s.trim().parse().ok())
+            .unwrap_or_else(|| panic!("missing {prefix:?} in {text:?}"))
+    }
+
+    fn quarter_px(v: f32) -> f32 {
+        (v * 4.0).round() / 4.0
+    }
+
+    fn scaled_twips(value: i32, height: Twips, scale: f32) -> Twips {
+        Twips::new((value as f32 * height.get() as f32 / scale) as i32)
+    }
+
+    /// Verifies that Font::typo_ascent and typo_descent return the same values
+    /// Flash Player produces for the same font and size. The Flash trace comes
+    /// from running tests/tests/swfs/avm2/textline_typographic_metrics/test.swf
+    /// in real Flash Player and is checked into output.txt.
+    ///
+    /// The test also asserts that the hhea ascender and descender produce
+    /// DIFFERENT values from Flash, which proves Flash is reading the OS/2
+    /// typographic fields rather than hhea.
+    #[test]
+    fn typo_metrics_match_flash() {
+        let dir = test_dir("textline_typographic_metrics");
+        let font_data = fs::read(dir.join("LiberationSans-Ag.ttf")).expect("font file");
+        let face = FontFace::new(FontFileData::new(font_data), 0).expect("valid font");
+        let output = fs::read_to_string(dir.join("output.txt")).expect("flash output");
+        let flash_ascent = parse_value(&output, "ascent: ");
+        let flash_descent = parse_value(&output, "descent: ");
+
+        let height = Twips::from_pixels(100.0);
+        let typo_ascent = scaled_twips(face.typo_ascender, height, face.scale);
+        let typo_descent = scaled_twips(face.typo_descender, height, face.scale);
+        assert_eq!(quarter_px(typo_ascent.to_pixels() as f32), flash_ascent);
+        assert_eq!(quarter_px(typo_descent.to_pixels() as f32), flash_descent);
+
+        // Negative control: hhea ascender and descender would not match Flash.
+        let hhea_ascent = scaled_twips(face.ascender, height, face.scale);
+        let hhea_descent = scaled_twips(face.descender, height, face.scale);
+        assert_ne!(quarter_px(hhea_ascent.to_pixels() as f32), flash_ascent,
+            "hhea ascender matches Flash, but OS/2 typo should be the source");
+        assert_ne!(quarter_px(hhea_descent.to_pixels() as f32), flash_descent,
+            "hhea descender matches Flash, but OS/2 typo should be the source");
     }
 }
