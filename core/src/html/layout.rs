@@ -1024,6 +1024,50 @@ impl<'gc> LayoutLine<'gc> {
         self.end
     }
 
+    pub fn trim_edge_tracking(&mut self, leading: Twips, trailing: Twips) {
+        if leading == Twips::ZERO && trailing == Twips::ZERO {
+            return;
+        }
+
+        let Some(first_text) = self.boxes.iter().position(LayoutBox::is_text_box) else {
+            return;
+        };
+        let last_text = self
+            .boxes
+            .iter()
+            .rposition(LayoutBox::is_text_box)
+            .expect("a first text box implies a last one");
+
+        if leading != Twips::ZERO {
+            if let LayoutContent::Text { char_end_pos, .. } = &mut self.boxes[first_text].content {
+                for pos in char_end_pos.iter_mut() {
+                    *pos -= leading;
+                }
+            }
+            let bounds = &mut self.boxes[first_text].bounds;
+            *bounds = bounds.with_width(bounds.width() - leading);
+            for later in self.boxes.iter_mut().skip(first_text + 1) {
+                later.bounds += Position::from((Twips::ZERO - leading, Twips::ZERO));
+            }
+        }
+
+        if trailing != Twips::ZERO {
+            if let LayoutContent::Text { char_end_pos, .. } = &mut self.boxes[last_text].content {
+                if let Some(k) = last_glyph_index(char_end_pos) {
+                    for pos in char_end_pos.iter_mut().skip(k) {
+                        *pos -= trailing;
+                    }
+                }
+            }
+            let bounds = &mut self.boxes[last_text].bounds;
+            *bounds = bounds.with_width(bounds.width() - trailing);
+        }
+
+        self.bounds = self
+            .bounds
+            .with_width(self.bounds.width() - leading - trailing);
+    }
+
     pub fn ascent(&self) -> Twips {
         self.ascent
     }
@@ -1457,5 +1501,31 @@ impl<'layout, 'gc> Iterator for LayoutBoxIter<'layout, 'gc> {
                 return None;
             }
         }
+    }
+}
+
+fn last_glyph_index(char_end_pos: &[Twips]) -> Option<usize> {
+    let mut prev = Twips::ZERO;
+    let mut last = None;
+    for (i, pos) in char_end_pos.iter().enumerate() {
+        if *pos > prev {
+            last = Some(i);
+        }
+        prev = *pos;
+    }
+    last
+}
+
+#[cfg(test)]
+mod tests {
+    use super::last_glyph_index;
+    use swf::Twips;
+
+    #[test]
+    fn last_glyph_index_skips_a_trailing_zero_width_atom() {
+        let tw = Twips::new;
+        assert_eq!(last_glyph_index(&[tw(10), tw(20), tw(30), tw(30)]), Some(2));
+        assert_eq!(last_glyph_index(&[tw(10), tw(20), tw(30)]), Some(2));
+        assert_eq!(last_glyph_index(&[]), None);
     }
 }
