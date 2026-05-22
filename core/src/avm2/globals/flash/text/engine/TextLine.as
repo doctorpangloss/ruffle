@@ -106,10 +106,7 @@ package flash.text.engine {
             return null;
         }
 
-        public function getBaselinePosition(baseline:String):Number {
-            stub_method("flash.text.engine.TextLine", "getBaselinePosition");
-            return 0.0;
-        }
+        public native function getBaselinePosition(baseline:String):Number;
 
         public function get hasTabs():Boolean {
             stub_getter("flash.text.engine.TextLine", "hasTabs");
