@@ -2906,6 +2906,7 @@ impl<'gc> DisplayObject<'gc> {
             Self::Avm1Button(dobj) => Some(InteractiveObject::Avm1Button(dobj)),
             Self::Avm2Button(dobj) => Some(InteractiveObject::Avm2Button(dobj)),
             Self::EditText(dobj) => Some(InteractiveObject::EditText(dobj)),
+            Self::FteTextLine(dobj) => Some(InteractiveObject::FteTextLine(dobj)),
             Self::LoaderDisplay(dobj) => Some(InteractiveObject::LoaderDisplay(dobj)),
             Self::MovieClip(dobj) => Some(InteractiveObject::MovieClip(dobj)),
             Self::Stage(dobj) => Some(InteractiveObject::Stage(dobj)),

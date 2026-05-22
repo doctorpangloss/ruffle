@@ -3,9 +3,11 @@
 #![allow(dead_code)]
 
 use crate::avm2::StageObject as Avm2StageObject;
+use crate::backend::ui::MouseCursor;
 use crate::context::{RenderContext, UpdateContext};
-use crate::display_object::interactive::InteractiveObjectBase;
-use crate::display_object::{BoundsMode, DisplayObjectBase};
+use crate::display_object::interactive::{InteractiveObjectBase, TInteractiveObject};
+use crate::display_object::{Avm2MousePick, BoundsMode, DisplayObjectBase, InteractiveObject};
+use crate::events::{ClipEvent, ClipEventResult};
 use crate::font::FontLike;
 use crate::html::LayoutLine;
 use crate::prelude::*;
@@ -381,9 +383,63 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
     }
 }
 
+impl<'gc> TInteractiveObject<'gc> for FteTextLine<'gc> {
+    fn raw_interactive(self) -> Gc<'gc, InteractiveObjectBase<'gc>> {
+        HasPrefixField::as_prefix_gc(self.0)
+    }
+
+    fn as_displayobject(self) -> DisplayObject<'gc> {
+        self.into()
+    }
+
+    fn filter_clip_event(
+        self,
+        _context: &mut UpdateContext<'gc>,
+        _event: ClipEvent,
+    ) -> ClipEventResult {
+        ClipEventResult::NotHandled
+    }
+
+    fn event_dispatch(
+        self,
+        _context: &mut UpdateContext<'gc>,
+        _event: ClipEvent<'gc>,
+    ) -> ClipEventResult {
+        ClipEventResult::NotHandled
+    }
+
+    fn mouse_pick_avm1(
+        self,
+        _context: &mut UpdateContext<'gc>,
+        _point: Point<Twips>,
+        _require_button_mode: bool,
+    ) -> Option<InteractiveObject<'gc>> {
+        None
+    }
+
+    fn mouse_pick_avm2(
+        self,
+        _context: &mut UpdateContext<'gc>,
+        _point: Point<Twips>,
+        _require_button_mode: bool,
+    ) -> Avm2MousePick<'gc> {
+        Avm2MousePick::Miss
+    }
+
+    fn mouse_cursor(self, _context: &mut UpdateContext<'gc>) -> MouseCursor {
+        MouseCursor::Arrow
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fte_text_line_satisfies_the_interactive_object_contract() {
+        fn assert_interactive<'gc, T: TInteractiveObject<'gc>>() {}
+        assert_interactive::<FteTextLine<'_>>();
+    }
 
     #[test]
     fn baseline_shift_converts_pixels_and_defaults_to_zero() {
