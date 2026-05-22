@@ -2,6 +2,7 @@ use ruffle_macros::istr;
 
 use crate::avm2::activation::Activation;
 use crate::avm2::error::{Error, make_error_2175};
+use crate::avm2::function::FunctionArgs;
 use crate::avm2::globals::flash::display::display_object::initialize_for_allocator;
 use crate::avm2::globals::methods::flash_text_engine_content_element as element_methods;
 use crate::avm2::globals::slots::flash_text_engine_content_element as element_slots;
@@ -134,6 +135,65 @@ fn format_from_content<'gc>(
     }
 
     Ok((format, tracking_left, tracking_right))
+}
+
+#[allow(dead_code)]
+fn typographic_case_transform(case: &str, text: &WStr) -> Option<WString> {
+    let transformed = match case {
+        "uppercase" => text.to_utf8_lossy().to_uppercase(),
+        "lowercase" => text.to_utf8_lossy().to_lowercase(),
+        _ => return None,
+    };
+    let transformed = WString::from_utf8(&transformed);
+    (transformed.len() == text.len()).then_some(transformed)
+}
+
+#[allow(dead_code)]
+fn collect_runs<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Object<'gc>,
+    out: &mut Vec<(WString, TextFormat, f64, f64)>,
+) -> Result<(), Error<'gc>> {
+    let is_group =
+        content.instance_class().name().local_name().to_utf8_lossy() == "GroupElement";
+
+    if is_group {
+        let count_name = crate::string::AvmString::new_utf8(activation.gc(), "elementCount");
+        let get_at_name = crate::string::AvmString::new_utf8(activation.gc(), "getElementAt");
+        let count = Value::from(content)
+            .get_public_property(count_name, activation)?
+            .coerce_to_i32(activation)?;
+        for i in 0..count {
+            let child = Value::from(content).call_public_property(
+                get_at_name,
+                FunctionArgs::from_slice(&[Value::from(i)]),
+                activation,
+            )?;
+            if let Some(child) = child.as_object() {
+                collect_runs(activation, child, out)?;
+            }
+        }
+    } else {
+        let text = Value::from(content)
+            .call_method(element_methods::GET_TEXT, &[], activation)
+            .unwrap_or_else(|_| istr!("").into())
+            .coerce_to_string(activation)?;
+        let (format, tracking_left, tracking_right) = format_from_content(activation, content)?;
+        let mut run_text = WString::from(text.as_wstr());
+
+        if let Some(ef) = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object() {
+            let tc = ef
+                .get_slot(format_slots::_TYPOGRAPHIC_CASE)
+                .coerce_to_string(activation)?;
+            if let Some(transformed) =
+                typographic_case_transform(tc.to_utf8_lossy().as_ref(), &run_text)
+            {
+                run_text = transformed;
+            }
+        }
+        out.push((run_text, format, tracking_left, tracking_right));
+    }
+    Ok(())
 }
 
 pub fn create_text_line<'gc>(
@@ -300,7 +360,7 @@ fn apply_format<'gc>(
 
 #[cfg(test)]
 mod tests {
-    use super::{finite_baseline_shift, next_line_start};
+    use super::*;
 
     #[test]
     fn next_line_start_resumes_after_the_previous_line() {
@@ -313,5 +373,17 @@ mod tests {
         assert_eq!(finite_baseline_shift(3.5), Some(3.5));
         assert_eq!(finite_baseline_shift(-2.0), Some(-2.0));
         assert_eq!(finite_baseline_shift(f64::NAN), None);
+    }
+
+    #[test]
+    fn typographic_case_transforms_only_when_length_is_preserved() {
+        let abc = WString::from_utf8("abc");
+        assert_eq!(
+            typographic_case_transform("uppercase", &abc).unwrap(),
+            WString::from_utf8("ABC")
+        );
+        assert!(typographic_case_transform("caps", &abc).is_none());
+        let sharp_s = WString::from_utf8("stra\u{00DF}e");
+        assert!(typographic_case_transform("uppercase", &sharp_s).is_none());
     }
 }
