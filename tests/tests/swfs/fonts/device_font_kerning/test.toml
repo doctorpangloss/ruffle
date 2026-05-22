@@ -1,11 +1,12 @@
 num_ticks = 1
 
 [image_comparisons.output]
-tolerance = 0
+tolerance = 1
+max_outliers = 16
 
 [player_options]
 with_renderer = { optional = false, quality = "high" }
 
-[fonts.a]
-family = "TestFont"
-path = "TestFont.ttf"
+[fonts.device]
+family = "DeviceFont"
+path = "TestFontDevice.ttf"

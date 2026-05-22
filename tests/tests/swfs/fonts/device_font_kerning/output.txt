@@ -1,4 +1,4 @@
-LM width: 50
-width: 50
-LM width: 50
-width: 50
+EmbeddedFont kerning=false width: 40
+EmbeddedFont kerning=true width: 40
+DeviceFont kerning=false width: 80
+DeviceFont kerning=true width: 80
