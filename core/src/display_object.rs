@@ -33,6 +33,7 @@ mod avm2_button;
 mod bitmap;
 mod container;
 mod edit_text;
+mod fte_text_line;
 mod graphic;
 mod interactive;
 mod loader_display;
