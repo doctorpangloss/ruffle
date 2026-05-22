@@ -1,0 +1,7 @@
+totalAscent: 14.5
+totalDescent: 4.25
+totalHeight: 18.75
+unjustifiedTextWidth: 97
+textWidth: 97
+hasTabs (plain): false
+hasTabs (tabbed): true
