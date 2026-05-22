@@ -1955,6 +1955,7 @@ impl<'gc> MovieClip<'gc> {
                     && color_transform_equals
             }
             DisplayObject::Avm1Button(_)
+            | DisplayObject::FteTextLine(_)
             | DisplayObject::Avm2Button(_)
             | DisplayObject::EditText(_)
             | DisplayObject::Bitmap(_)

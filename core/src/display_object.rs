@@ -55,6 +55,7 @@ pub use bitmap::{Bitmap, BitmapClass};
 #[allow(unused)]
 pub use edit_text::LayoutDebugBoxesFlag;
 pub use edit_text::{AutoSizeMode, EditText, TextSelection};
+pub use fte_text_line::FteTextLine;
 pub use graphic::Graphic;
 pub use interactive::{Avm2MousePick, InteractiveObject, TInteractiveObject};
 pub use loader_display::LoaderDisplay;
@@ -1278,6 +1279,7 @@ pub fn apply_standard_mask_and_scroll<'gc, F>(
         MovieClip(MovieClip<'gc>),
         Text(Text<'gc>),
         Video(Video<'gc>),
+        FteTextLine(FteTextLine<'gc>),
         LoaderDisplay(LoaderDisplay<'gc>)
     }
 )]
@@ -2896,6 +2898,7 @@ impl<'gc> DisplayObject<'gc> {
         pub fn as_morph_shape for MorphShape;
         pub fn as_video for Video;
         pub fn as_bitmap for Bitmap;
+        pub fn as_fte_text_line for FteTextLine;
     }
 
     pub fn as_interactive(self) -> Option<InteractiveObject<'gc>> {

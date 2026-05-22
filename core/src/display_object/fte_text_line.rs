@@ -5,18 +5,19 @@
 use crate::avm2::StageObject as Avm2StageObject;
 use crate::context::UpdateContext;
 use crate::display_object::interactive::InteractiveObjectBase;
+use crate::display_object::{BoundsMode, DisplayObjectBase};
 use crate::font::FontLike;
 use crate::html::LayoutLine;
+use crate::prelude::*;
 use crate::string::{WStr, WString};
 use crate::tag_utils::SwfMovie;
 use core::fmt;
 use gc_arena::barrier::unlock;
 use gc_arena::lock::{Lock, RefLock};
-use gc_arena::{Collect, Gc};
+use gc_arena::{Collect, Gc, Mutation};
 use ruffle_common::utils::HasPrefixField;
 use std::cell::Ref;
 use std::sync::Arc;
-use swf::Twips;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Clone, Copy, Debug)]
@@ -253,9 +254,92 @@ impl<'gc> FteTextLine<'gc> {
     }
 }
 
+fn baseline_origin_bounds(width: f32, ascent: f32, descent: f32) -> Rectangle<Twips> {
+    Rectangle {
+        x_min: Twips::ZERO,
+        x_max: Twips::from_pixels(width as f64),
+        y_min: Twips::from_pixels(-(ascent as f64)),
+        y_max: Twips::from_pixels(descent as f64),
+    }
+}
+
+impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
+    fn base(self) -> Gc<'gc, DisplayObjectBase<'gc>> {
+        let interactive: Gc<'gc, InteractiveObjectBase<'gc>> = HasPrefixField::as_prefix_gc(self.0);
+        HasPrefixField::as_prefix_gc(interactive)
+    }
+
+    fn instantiate(self, gc_context: &Mutation<'gc>) -> DisplayObject<'gc> {
+        let borrowed = self.0.line.borrow();
+        let cloned = FteTextLineData {
+            base: Default::default(),
+            avm2_object: Lock::new(None),
+            line: RefLock::new(FteLine {
+                html_line: borrowed.html_line.clone(),
+                text: borrowed.text.clone(),
+                atoms: borrowed.atoms.clone(),
+                ascent: borrowed.ascent,
+                descent: borrowed.descent,
+            }),
+            movie: self.0.movie.clone(),
+        };
+        drop(borrowed);
+        Self(Gc::new(gc_context, cloned)).into()
+    }
+
+    fn id(self) -> CharacterId {
+        0
+    }
+
+    fn movie(self) -> Arc<SwfMovie> {
+        self.0.movie.clone()
+    }
+
+    fn replace_with(self, _context: &mut UpdateContext<'gc>, _id: CharacterId) {}
+
+    fn self_bounds(self, _mode: BoundsMode) -> Rectangle<Twips> {
+        let line = self.0.line.borrow();
+        baseline_origin_bounds(line.width(), line.ascent(), line.descent())
+    }
+
+    fn hit_test_shape(
+        self,
+        _context: &mut UpdateContext<'gc>,
+        point: Point<Twips>,
+        options: HitTestOptions,
+    ) -> bool {
+        if options.contains(HitTestOptions::SKIP_INVISIBLE) && !self.visible() {
+            return false;
+        }
+        self.world_bounds(BoundsMode::Engine).contains(point)
+    }
+
+    fn object1(self) -> Option<crate::avm1::Object<'gc>> {
+        None
+    }
+
+    fn object2(self) -> Option<Avm2StageObject<'gc>> {
+        self.0.avm2_object.get()
+    }
+
+    fn set_object2(self, context: &mut UpdateContext<'gc>, to: Avm2StageObject<'gc>) {
+        let mc = context.gc();
+        unlock!(Gc::write(mc, self.0), FteTextLineData, avm2_object).set(Some(to));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn self_bounds_place_the_origin_on_the_baseline() {
+        let bounds = baseline_origin_bounds(120.0, 16.0, 4.0);
+        assert_eq!(bounds.x_min, Twips::ZERO);
+        assert_eq!(bounds.x_max, Twips::from_pixels(120.0));
+        assert_eq!(bounds.y_min, Twips::from_pixels(-16.0));
+        assert_eq!(bounds.y_max, Twips::from_pixels(4.0));
+    }
 
     #[test]
     fn fte_text_line_handle_is_a_single_gc_pointer() {
