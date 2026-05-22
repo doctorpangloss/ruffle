@@ -186,6 +186,47 @@ pub fn get_atom_word_boundary_on_left<'gc>(
     Ok(atom.word_boundary_on_left.into())
 }
 
+fn atom_bounds(this: Value<'_>, index: i32) -> (f64, f64, f64, f64) {
+    let Some(line) = fte_line(this) else {
+        return (0.0, 0.0, 0.0, 0.0);
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return (0.0, 0.0, 0.0, 0.0);
+    };
+    (
+        atom.x as f64,
+        -line.ascent() as f64,
+        atom.width as f64,
+        (line.ascent() + line.descent()) as f64,
+    )
+}
+
+pub fn get_atom_bounds<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let (x, y, width, height) = atom_bounds(this, index);
+    let class = activation.avm2().classes().rectangle;
+    class.construct(activation, &[x.into(), y.into(), width.into(), height.into()])
+}
+
+pub fn get_atom_center<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok(0.0.into());
+    };
+    let Some(atom) = atom_at(&line, index) else {
+        return Ok(0.0.into());
+    };
+    Ok(((atom.x + atom.width / 2.0) as f64).into())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

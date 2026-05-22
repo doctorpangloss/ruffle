@@ -6,6 +6,7 @@ package flash.text.engine {
     import flash.display.DisplayObject;
     import flash.display.DisplayObjectContainer;
     import flash.errors.IllegalOperationError;
+    import flash.geom.Point;
     import flash.geom.Rectangle;
     import flash.ui.ContextMenu;
 
@@ -114,7 +115,13 @@ package flash.text.engine {
         }
 
         public function getAtomIndexAtPoint(stageX:Number, stageY:Number):int {
-            stub_method("flash.text.engine.TextLine", "getAtomIndexAtPoint");
+            var p:Point = this.globalToLocal(new Point(stageX, stageY));
+            var n:int = this.atomCount;
+            for (var i:int = 0; i < n; i++) {
+                if (this.getAtomBounds(i).containsPoint(p)) {
+                    return i;
+                }
+            }
             return -1;
         }
 
@@ -122,15 +129,9 @@ package flash.text.engine {
 
         public native function getAtomBidiLevel(index:int):int;
 
-        public function getAtomBounds(index:int):Rectangle {
-            stub_method("flash.text.engine.TextLine", "getAtomBounds");
-            return new Rectangle(0, 0, 0, 0);
-        }
+        public native function getAtomBounds(index:int):Rectangle;
 
-        public function getAtomCenter(index:int):Number {
-            stub_method("flash.text.engine.TextLine", "getAtomCenter");
-            return 1.0;
-        }
+        public native function getAtomCenter(index:int):Number;
 
         public function getAtomGraphic(index:int):DisplayObject {
             stub_method("flash.text.engine.TextLine", "getAtomGraphic");
