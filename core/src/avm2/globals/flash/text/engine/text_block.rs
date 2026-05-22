@@ -15,8 +15,10 @@ use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
 use crate::avm2_stub_method;
 use crate::display_object::{EditText, TDisplayObject};
-use crate::html::TextFormat;
+use crate::font::FontType;
+use crate::html::{FormatSpans, LayoutLine, TextFormat, lower_from_text_spans};
 use crate::string::{WStr, WString};
+use swf::Twips;
 
 #[allow(dead_code)]
 fn next_line_start(previous: Option<(usize, usize)>) -> usize {
@@ -196,6 +198,103 @@ fn collect_runs<'gc>(
     Ok(())
 }
 
+#[allow(dead_code)]
+fn paragraph_len(tail: &WStr) -> usize {
+    match tail.iter().position(|u| u == 0x2028 || u == 0x2029) {
+        Some(pos) => pos + 1,
+        None => tail.len(),
+    }
+}
+
+#[allow(dead_code)]
+fn clip_run(
+    run_start: usize,
+    run_end: usize,
+    lo_bound: usize,
+    hi_bound: usize,
+) -> Option<(usize, usize)> {
+    let lo = run_start.max(lo_bound);
+    let hi = run_end.min(hi_bound);
+    (lo < hi).then_some((lo, hi))
+}
+
+#[allow(dead_code)]
+fn lay_out_first_line<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    full_text: crate::string::AvmString<'gc>,
+    start: usize,
+    content: Object<'gc>,
+    width: f64,
+) -> Result<Option<(LayoutLine<'gc>, WString, usize)>, Error<'gc>> {
+    let tail = &full_text[start..];
+    let para_len = paragraph_len(tail);
+    let line_end = start + para_len;
+
+    let mut runs: Vec<(WString, TextFormat, f64, f64)> = Vec::new();
+    collect_runs(activation, content, &mut runs)?;
+
+    let mut remaining = WString::new();
+    let mut run_spans: Vec<(usize, usize, &TextFormat, f64, f64)> = Vec::new();
+    let mut run_off = 0usize;
+    for (run_text, run_fmt, tracking_left, tracking_right) in &runs {
+        let run_start = run_off;
+        run_off += run_text.len();
+        if let Some((lo, hi)) = clip_run(run_start, run_off, start, line_end) {
+            run_spans.push((lo - start, hi - start, run_fmt, *tracking_left, *tracking_right));
+            remaining.push_str(&run_text[lo - run_start..hi - run_start]);
+        }
+    }
+    if runs.is_empty() {
+        remaining = WString::from(&tail[..para_len]);
+    }
+
+    let base = match runs.first() {
+        Some((_, fmt, ..)) => fmt.clone(),
+        None => format_from_content(activation, content)?.0,
+    };
+    let mut spans = FormatSpans::from_text(remaining.clone(), base);
+    for (from, to, fmt, ..) in &run_spans {
+        spans.set_text_format(*from, *to, fmt);
+    }
+
+    let requested_width = if width >= 1_000_000.0 {
+        None
+    } else {
+        Some(Twips::from_pixels(width))
+    };
+
+    let movie = activation.caller_movie_or_root();
+    let layout = lower_from_text_spans(
+        &spans,
+        activation.context,
+        movie,
+        requested_width,
+        false,
+        true,
+        FontType::Device,
+        true,
+    );
+
+    let Some(mut first) = layout.lines().first().cloned() else {
+        return Ok(None);
+    };
+
+    let (line_lo, line_hi) = (first.start(), first.end());
+    let mut leading = 0.0;
+    let mut trailing = 0.0;
+    for &(from, to, _, tracking_left, tracking_right) in &run_spans {
+        if from <= line_lo && line_lo < to {
+            leading = tracking_left;
+        }
+        if from < line_hi && line_hi <= to {
+            trailing = tracking_right;
+        }
+    }
+    first.trim_edge_tracking(Twips::from_pixels(leading), Twips::from_pixels(trailing));
+
+    Ok(Some((first, remaining, start)))
+}
+
 pub fn create_text_line<'gc>(
     activation: &mut Activation<'_, 'gc>,
     this: Value<'gc>,
@@ -373,6 +472,20 @@ mod tests {
         assert_eq!(finite_baseline_shift(3.5), Some(3.5));
         assert_eq!(finite_baseline_shift(-2.0), Some(-2.0));
         assert_eq!(finite_baseline_shift(f64::NAN), None);
+    }
+
+    #[test]
+    fn paragraph_len_stops_after_the_first_hard_break() {
+        assert_eq!(paragraph_len(&WString::from_utf8("hello")), 5);
+        assert_eq!(paragraph_len(&WString::from_utf8("ab\u{2028}cd")), 3);
+        assert_eq!(paragraph_len(&WString::from_utf8("x\u{2029}y")), 2);
+    }
+
+    #[test]
+    fn clip_run_intersects_a_run_with_the_line() {
+        assert_eq!(clip_run(0, 10, 3, 7), Some((3, 7)));
+        assert_eq!(clip_run(0, 3, 5, 9), None);
+        assert_eq!(clip_run(5, 5, 0, 9), None);
     }
 
     #[test]
