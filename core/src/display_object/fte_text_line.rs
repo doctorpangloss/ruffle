@@ -2,10 +2,20 @@
 
 #![allow(dead_code)]
 
+use crate::avm2::StageObject as Avm2StageObject;
+use crate::context::UpdateContext;
+use crate::display_object::interactive::InteractiveObjectBase;
 use crate::font::FontLike;
 use crate::html::LayoutLine;
 use crate::string::{WStr, WString};
-use gc_arena::Collect;
+use crate::tag_utils::SwfMovie;
+use core::fmt;
+use gc_arena::barrier::unlock;
+use gc_arena::lock::{Lock, RefLock};
+use gc_arena::{Collect, Gc};
+use ruffle_common::utils::HasPrefixField;
+use std::cell::Ref;
+use std::sync::Arc;
 use swf::Twips;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -197,9 +207,65 @@ impl<'gc> FteLine<'gc> {
     }
 }
 
+#[derive(Clone, Collect, Copy)]
+#[collect(no_drop)]
+pub struct FteTextLine<'gc>(Gc<'gc, FteTextLineData<'gc>>);
+
+impl fmt::Debug for FteTextLine<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FteTextLine")
+            .field("ptr", &Gc::as_ptr(self.0))
+            .finish()
+    }
+}
+
+#[derive(Collect, HasPrefixField)]
+#[collect(no_drop)]
+#[repr(C, align(8))]
+pub struct FteTextLineData<'gc> {
+    base: InteractiveObjectBase<'gc>,
+    avm2_object: Lock<Option<Avm2StageObject<'gc>>>,
+    line: RefLock<FteLine<'gc>>,
+    #[collect(require_static)]
+    movie: Arc<SwfMovie>,
+}
+
+impl<'gc> FteTextLine<'gc> {
+    pub fn new(context: &mut UpdateContext<'gc>, movie: Arc<SwfMovie>, line: FteLine<'gc>) -> Self {
+        FteTextLine(Gc::new(
+            context.gc(),
+            FteTextLineData {
+                base: Default::default(),
+                avm2_object: Lock::new(None),
+                line: RefLock::new(line),
+                movie,
+            },
+        ))
+    }
+
+    pub fn line(self) -> Ref<'gc, FteLine<'gc>> {
+        Gc::as_ref(self.0).line.borrow()
+    }
+
+    pub fn set_line(self, context: &mut UpdateContext<'gc>, line: FteLine<'gc>) {
+        let mc = context.gc();
+        unlock!(Gc::write(mc, self.0), FteTextLineData, line).replace(line);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fte_text_line_handle_is_a_single_gc_pointer() {
+        fn assert_copy<T: Copy>() {}
+        assert_copy::<FteTextLine<'_>>();
+        assert_eq!(
+            std::mem::size_of::<FteTextLine<'_>>(),
+            std::mem::size_of::<usize>(),
+        );
+    }
 
     #[test]
     fn typo_metrics_take_the_max_across_fonts_and_fall_back_when_empty() {
