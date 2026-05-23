@@ -1,0 +1,10 @@
+num_frames = 1
+
+[fonts.sans]
+family = "Liberation Sans"
+path = "LiberationSans-Regular.ttf"
+bold = false
+italic = false
+
+[default_fonts]
+sans = ["Liberation Sans"]

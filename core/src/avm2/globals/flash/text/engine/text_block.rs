@@ -13,14 +13,12 @@ use crate::avm2::globals::slots::flash_text_engine_text_line as line_slots;
 use crate::avm2::object::{Object, TObject};
 use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
-use crate::avm2_stub_method;
-use crate::display_object::{EditText, TDisplayObject};
+use crate::display_object::{FteLine, FteTextLine};
 use crate::font::FontType;
 use crate::html::{FormatSpans, LayoutLine, TextFormat, lower_from_text_spans};
 use crate::string::{WStr, WString};
 use swf::Twips;
 
-#[allow(dead_code)]
 fn next_line_start(previous: Option<(usize, usize)>) -> usize {
     match previous {
         Some((begin, raw_length)) => begin + raw_length,
@@ -28,7 +26,6 @@ fn next_line_start(previous: Option<(usize, usize)>) -> usize {
     }
 }
 
-#[allow(dead_code)]
 fn resolve_text_content<'gc>(
     activation: &mut Activation<'_, 'gc>,
     text_block: Object<'gc>,
@@ -72,12 +69,10 @@ fn resolve_text_content<'gc>(
     Ok(Some((start, full_text, content.as_object().unwrap())))
 }
 
-#[allow(dead_code)]
 fn finite_baseline_shift(value: f64) -> Option<f64> {
     value.is_finite().then_some(value)
 }
 
-#[allow(dead_code)]
 fn format_from_content<'gc>(
     activation: &mut Activation<'_, 'gc>,
     content: Object<'gc>,
@@ -139,7 +134,6 @@ fn format_from_content<'gc>(
     Ok((format, tracking_left, tracking_right))
 }
 
-#[allow(dead_code)]
 fn typographic_case_transform(case: &str, text: &WStr) -> Option<WString> {
     let transformed = match case {
         "uppercase" => text.to_utf8_lossy().to_uppercase(),
@@ -150,7 +144,6 @@ fn typographic_case_transform(case: &str, text: &WStr) -> Option<WString> {
     (transformed.len() == text.len()).then_some(transformed)
 }
 
-#[allow(dead_code)]
 fn collect_runs<'gc>(
     activation: &mut Activation<'_, 'gc>,
     content: Object<'gc>,
@@ -198,7 +191,6 @@ fn collect_runs<'gc>(
     Ok(())
 }
 
-#[allow(dead_code)]
 fn paragraph_len(tail: &WStr) -> usize {
     match tail.iter().position(|u| u == 0x2028 || u == 0x2029) {
         Some(pos) => pos + 1,
@@ -206,7 +198,6 @@ fn paragraph_len(tail: &WStr) -> usize {
     }
 }
 
-#[allow(dead_code)]
 fn clip_run(
     run_start: usize,
     run_end: usize,
@@ -218,7 +209,6 @@ fn clip_run(
     (lo < hi).then_some((lo, hi))
 }
 
-#[allow(dead_code)]
 fn lay_out_first_line<'gc>(
     activation: &mut Activation<'_, 'gc>,
     full_text: crate::string::AvmString<'gc>,
@@ -302,77 +292,54 @@ pub fn create_text_line<'gc>(
 ) -> Result<Value<'gc>, Error<'gc>> {
     let this = this.as_object().unwrap();
 
-    avm2_stub_method!(activation, "flash.text.TextBlock", "createTextLine");
-
     let previous_text_line = args.try_get_object(0);
     let width = args.get_f64(1);
 
-    let content = this.get_slot(block_slots::_CONTENT);
-
-    let content = if matches!(content, Value::Null) {
+    let Some((start, full_text, content)) =
+        resolve_text_content(activation, this, previous_text_line)?
+    else {
         return Ok(Value::Null);
-    } else {
-        content
     };
 
-    let text = match previous_text_line {
-        Some(_) => {
-            // Some SWFs rely on eventually getting `null` from createLineText.
-            // TODO: Support multiple lines
-            this.set_slot(
-                block_slots::_TEXT_LINE_CREATION_RESULT,
-                istr!("complete").into(),
-                activation,
-            )?;
-            return Ok(Value::Null);
-        }
-        // Get the content element's text property (it's a getter).
-        // TODO: GraphicElement?
-        None => {
-            let txt = content
-                .call_method(element_methods::GET_TEXT, &[], activation)
-                .unwrap_or_else(|_| istr!("").into());
-
-            if matches!(txt, Value::Null) {
-                // FP returns a null TextLine when `o` is null- note that
-                // `o` is already coerced to a String because of the AS bindings.
-                return Ok(Value::Null);
-            } else {
-                txt.coerce_to_string(activation)
-                    .expect("Guaranteed by AS bindings")
-            }
-        }
+    let Some((html_line, text, begin)) =
+        lay_out_first_line(activation, full_text, start, content, width)?
+    else {
+        this.set_slot(
+            block_slots::_TEXT_LINE_CREATION_RESULT,
+            istr!("complete").into(),
+            activation,
+        )?;
+        return Ok(Value::Null);
     };
 
-    let class = activation.avm2().classes().textline;
+    let fte_line = FteLine::new(html_line, text, begin);
+    let raw_text_length = fte_line.raw_text_length();
     let movie = activation.caller_movie_or_root();
 
-    // FIXME: TextLine should be its own DisplayObject
-    let display_object: EditText =
-        EditText::new_fte(activation.context, movie, 0.0, 0.0, width, 15.0);
-
-    display_object.set_text(text.as_wstr(), activation.context);
-
-    // FIXME: This needs to use `intrinsic_bounds` to measure the width
-    // of the provided text, and set the width of the EditText to that.
-    // Some games depend on this (e.g. Realm Grinder).
-
-    let content = content.as_object().unwrap();
-    let element_format = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object();
-
-    apply_format(activation, display_object, text.as_wstr(), element_format)?;
-
-    let instance = initialize_for_allocator(activation.context, display_object.into(), class);
+    let fte = FteTextLine::new(activation.context, movie, fte_line);
+    let class = activation.avm2().classes().textline;
+    let instance = initialize_for_allocator(activation.context, fte.into(), class);
 
     instance.set_slot(line_slots::_TEXT_BLOCK, this.into(), activation)?;
-
     instance.set_slot(line_slots::_SPECIFIED_WIDTH, args.get_value(1), activation)?;
-
     instance.set_slot(
         line_slots::_RAW_TEXT_LENGTH,
-        Value::from_usize_lossy(text.len()),
+        (raw_text_length as i32).into(),
         activation,
     )?;
+    instance.set_slot(
+        line_slots::_TEXT_BLOCK_BEGIN_INDEX,
+        (start as i32).into(),
+        activation,
+    )?;
+
+    if let Some(prev) = previous_text_line {
+        prev.set_slot(line_slots::_NEXT_LINE, instance.into(), activation)?;
+        instance.set_slot(line_slots::_PREVIOUS_LINE, prev.into(), activation)?;
+    } else {
+        this.set_slot(block_slots::_FIRST_LINE, instance.into(), activation)?;
+    }
+    this.set_slot(block_slots::_LAST_LINE, instance.into(), activation)?;
 
     this.set_slot(
         block_slots::_TEXT_LINE_CREATION_RESULT,
@@ -380,81 +347,7 @@ pub fn create_text_line<'gc>(
         activation,
     )?;
 
-    this.set_slot(block_slots::_FIRST_LINE, instance.into(), activation)?;
-
     Ok(instance.into())
-}
-
-fn apply_format<'gc>(
-    activation: &mut Activation<'_, 'gc>,
-    display_object: EditText<'gc>,
-    text: &WStr,
-    element_format: Option<Object<'gc>>,
-) -> Result<(), Error<'gc>> {
-    if let Some(element_format) = element_format {
-        // TODO: Support more ElementFormat properties
-        let color = element_format
-            .get_slot(format_slots::_COLOR)
-            .coerce_to_u32(activation)?;
-        let size = element_format
-            .get_slot(format_slots::_FONT_SIZE)
-            .coerce_to_number(activation)?;
-
-        let (font, bold, italic, is_device_font) = if let Value::Object(font_description) =
-            element_format.get_slot(format_slots::_FONT_DESCRIPTION)
-        {
-            (
-                Some(
-                    font_description
-                        .get_slot(font_desc_slots::_FONT_NAME)
-                        .coerce_to_string(activation)?
-                        .as_wstr()
-                        .into(),
-                ),
-                Some(
-                    &font_description
-                        .get_slot(font_desc_slots::_FONT_WEIGHT)
-                        .coerce_to_string(activation)?
-                        == b"bold",
-                ),
-                Some(
-                    &font_description
-                        .get_slot(font_desc_slots::_FONT_POSTURE)
-                        .coerce_to_string(activation)?
-                        == b"italic",
-                ),
-                &font_description
-                    .get_slot(font_desc_slots::_FONT_LOOKUP)
-                    .coerce_to_string(activation)?
-                    == b"device",
-            )
-        } else {
-            (None, None, None, true)
-        };
-
-        let format = TextFormat {
-            color: Some(swf::Color::from_rgb(color, 0xFF)),
-            size: Some(size),
-            font,
-            bold,
-            italic,
-            ..TextFormat::default()
-        };
-
-        display_object.set_is_device_font(activation.context, is_device_font);
-        display_object.set_text_format(0, text.len(), format.clone(), activation.context);
-        display_object.set_new_text_format(format);
-    } else {
-        display_object.set_is_device_font(activation.context, true);
-    }
-
-    display_object.set_word_wrap(true, activation.context);
-
-    let measured_text = display_object.measure_text(activation.context);
-
-    display_object.set_height(activation.context, measured_text.1.to_pixels());
-
-    Ok(())
 }
 
 #[cfg(test)]

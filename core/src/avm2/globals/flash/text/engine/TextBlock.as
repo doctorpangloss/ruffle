@@ -24,6 +24,9 @@ package flash.text.engine {
         [Ruffle(NativeAccessible)]
         private var _firstLine:TextLine = null;
 
+        [Ruffle(NativeAccessible)]
+        private var _lastLine:TextLine = null;
+
         public function TextBlock(
             content:ContentElement = null,
             tabStops:Vector.<TabStop> = null,

@@ -28,6 +28,12 @@ package flash.text.engine {
         [Ruffle(NativeAccessible)]
         private var _textBlockBeginIndex:int = 0;
 
+        [Ruffle(NativeAccessible)]
+        internal var _nextLine:TextLine = null;
+
+        [Ruffle(NativeAccessible)]
+        internal var _previousLine:TextLine = null;
+
         internal var _validity:String = "valid";
 
         public static const MAX_LINE_WIDTH:int = 1000000;

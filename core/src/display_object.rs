@@ -55,7 +55,7 @@ pub use bitmap::{Bitmap, BitmapClass};
 #[allow(unused)]
 pub use edit_text::LayoutDebugBoxesFlag;
 pub use edit_text::{AutoSizeMode, EditText, TextSelection};
-pub use fte_text_line::FteTextLine;
+pub use fte_text_line::{FteLine, FteTextLine};
 pub use graphic::Graphic;
 pub use interactive::{Avm2MousePick, InteractiveObject, TInteractiveObject};
 pub use loader_display::LoaderDisplay;
