@@ -1,0 +1,14 @@
+step 1: init
+step 2: format created
+step 3: children built, length=4
+step 4: group created, elementCount=4
+text: aaabbbcccddd
+getElAt(0): aaa
+getElAt(5): bbb
+getElAt(8): ccc
+groupElements done, elementCount=3
+inner is GroupElement: true
+inner text: bbbccc
+ungroupElements done, elementCount=4
+mergeTextElements done, elementCount=3
+merged text: aaabbb
