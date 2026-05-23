@@ -100,11 +100,11 @@ package flash.text.engine {
         public native function get atomCount():int;
 
         public function get nextLine():TextLine {
-            return null;
+            return this._nextLine;
         }
 
         public function get previousLine():TextLine {
-            return null;
+            return this._previousLine;
         }
 
         public native function getBaselinePosition(baseline:String):Number;

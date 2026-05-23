@@ -326,14 +326,6 @@ impl DisplayObjectWindow {
         Grid::new(ui.id().with("edittext"))
             .num_columns(2)
             .show(ui, |ui| {
-                ui.label("Is FTE");
-                if object.is_fte() {
-                    ui.label("Yes");
-                } else {
-                    ui.label("No");
-                }
-                ui.end_row();
-
                 ui.label("Border");
                 ui.horizontal(|ui| {
                     let mut has_border = object.has_border();
@@ -1772,6 +1764,7 @@ fn display_object_type(object: DisplayObject) -> &'static str {
         DisplayObject::MovieClip(_) => "MovieClip",
         DisplayObject::Text(_) => "Text",
         DisplayObject::Video(_) => "Video",
+        DisplayObject::FteTextLine(_) => "FteTextLine",
         DisplayObject::LoaderDisplay(_) => "LoaderDisplay",
     }
 }

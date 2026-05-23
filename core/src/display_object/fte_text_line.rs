@@ -1,7 +1,5 @@
 //! The FteTextLine DisplayObject, backing flash.text.engine TextLine.
 
-#![allow(dead_code)]
-
 use crate::avm2::StageObject as Avm2StageObject;
 use crate::backend::ui::MouseCursor;
 use crate::context::{RenderContext, UpdateContext};
