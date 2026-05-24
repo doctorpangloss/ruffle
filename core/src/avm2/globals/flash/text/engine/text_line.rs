@@ -2,12 +2,19 @@ use crate::avm2::activation::Activation;
 use crate::avm2::error::Error;
 use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
-use crate::display_object::FteLine;
+use crate::display_object::{Atom, FteLine};
 use std::cell::Ref;
 
 fn fte_line<'gc>(this: Value<'gc>) -> Option<Ref<'gc, FteLine<'gc>>> {
     let line = this.as_object()?.as_display_object()?.as_fte_text_line()?;
     Some(line.line())
+}
+
+fn atom_at<'a>(line: &'a FteLine, index: i32) -> Option<&'a Atom> {
+    if index < 0 {
+        return None;
+    }
+    line.atoms().get(index as usize)
 }
 
 pub fn get_text_width<'gc>(
@@ -104,4 +111,61 @@ pub fn get_baseline_position<'gc>(
         _ => 0.0,
     };
     Ok((position as f64).into())
+}
+
+pub fn get_atom_count<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let Some(line) = fte_line(this) else {
+        return Ok(0.into());
+    };
+    Ok((line.atoms().len() as i32).into())
+}
+
+pub fn get_atom_index_at_char_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let char_index = args.get_i32(0);
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let atom = line
+        .atoms()
+        .iter()
+        .position(|atom| atom.char_start as i32 <= char_index && char_index < atom.char_end as i32)
+        .map(|index| index as i32)
+        .unwrap_or(-1);
+    Ok(atom.into())
+}
+
+pub fn get_atom_text_block_begin_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let Some(atom) = atom_at(&line, args.get_i32(0)) else {
+        return Ok((-1).into());
+    };
+    Ok((atom.char_start as i32).into())
+}
+
+pub fn get_atom_text_block_end_index<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let Some(line) = fte_line(this) else {
+        return Ok((-1).into());
+    };
+    let Some(atom) = atom_at(&line, args.get_i32(0)) else {
+        return Ok((-1).into());
+    };
+    Ok((atom.char_end as i32).into())
 }
