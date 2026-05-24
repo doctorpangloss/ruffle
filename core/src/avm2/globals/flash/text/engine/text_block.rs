@@ -281,7 +281,11 @@ pub fn create_text_line<'gc>(
         Twips::from_pixels(tracking_left),
         Twips::from_pixels(tracking_right),
     );
-    let fte_line = FteLine::new(html_line, displayed_text, next_line_start);
+    let bidi_level = this
+        .get_slot(block_slots::_BIDI_LEVEL)
+        .coerce_to_u32(activation)?
+        .min(u8::MAX as u32) as u8;
+    let fte_line = FteLine::new(html_line, displayed_text, next_line_start, bidi_level);
     let raw_text_length = fte_line.raw_text_length();
 
     let fallback = EditText::new_fte(
@@ -473,7 +477,11 @@ pub fn recreate_text_line<'gc>(
         Twips::from_pixels(tracking_left),
         Twips::from_pixels(tracking_right),
     );
-    let fte_line = FteLine::new(html_line, displayed_text, next_line_start);
+    let bidi_level = this
+        .get_slot(block_slots::_BIDI_LEVEL)
+        .coerce_to_u32(activation)?
+        .min(u8::MAX as u32) as u8;
+    let fte_line = FteLine::new(html_line, displayed_text, next_line_start, bidi_level);
     let raw_text_length = fte_line.raw_text_length();
 
     if let Some(display_object) = text_line.as_display_object() {
