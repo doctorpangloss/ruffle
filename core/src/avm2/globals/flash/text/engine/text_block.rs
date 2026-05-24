@@ -14,7 +14,7 @@ use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
 use crate::display_object::{EditText, FteLine, FteTextLine, TDisplayObject};
 use crate::font::FontType;
-use crate::html::{FormatSpans, TextFormat, lower_from_text_spans};
+use crate::html::{FormatSpans, TextFormat, lower_from_text_spans_for_text_line};
 use crate::string::{AvmString, WStr, WString};
 use swf::Twips;
 
@@ -45,6 +45,10 @@ fn format_from_content<'gc>(
             .get_slot(format_slots::_TRACKING_RIGHT)
             .coerce_to_number(activation)?;
         format.letter_spacing = Some(tracking_left + tracking_right);
+        let kerning = ef
+            .get_slot(format_slots::_KERNING)
+            .coerce_to_string(activation)?;
+        format.kerning = Some(kerning.to_utf8_lossy() != "off");
         if let Value::Object(fd) = ef.get_slot(format_slots::_FONT_DESCRIPTION) {
             format.font = Some(WString::from(
                 fd.get_slot(font_desc_slots::_FONT_NAME)
@@ -152,7 +156,7 @@ pub fn create_text_line<'gc>(
         Some(Twips::from_pixels(args.get_f64(1)))
     };
     let movie = activation.caller_movie_or_root();
-    let layout = lower_from_text_spans(
+    let layout = lower_from_text_spans_for_text_line(
         &spans,
         activation.context,
         movie.clone(),
