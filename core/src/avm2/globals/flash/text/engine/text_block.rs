@@ -21,13 +21,16 @@ use swf::Twips;
 fn format_from_content<'gc>(
     activation: &mut Activation<'_, 'gc>,
     content: Object<'gc>,
-) -> Result<TextFormat, Error<'gc>> {
+) -> Result<(TextFormat, f64, f64), Error<'gc>> {
     let mut format = TextFormat {
         font: Some(WString::from_utf8("_sans")),
         size: Some(12.0),
         color: Some(swf::Color::from_rgb(0, 0xff)),
         ..Default::default()
     };
+
+    let mut tracking_left = 0.0;
+    let mut tracking_right = 0.0;
 
     if let Some(ef) = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object() {
         let color = ef
@@ -38,10 +41,10 @@ fn format_from_content<'gc>(
             ef.get_slot(format_slots::_FONT_SIZE)
                 .coerce_to_number(activation)?,
         );
-        let tracking_left = ef
+        tracking_left = ef
             .get_slot(format_slots::_TRACKING_LEFT)
             .coerce_to_number(activation)?;
-        let tracking_right = ef
+        tracking_right = ef
             .get_slot(format_slots::_TRACKING_RIGHT)
             .coerce_to_number(activation)?;
         format.letter_spacing = Some(tracking_left + tracking_right);
@@ -76,7 +79,7 @@ fn format_from_content<'gc>(
         }
     }
 
-    Ok(format)
+    Ok((format, tracking_left, tracking_right))
 }
 
 fn text_until_hard_break(text: &WStr, start: usize) -> WString {
@@ -89,6 +92,21 @@ fn text_until_hard_break(text: &WStr, start: usize) -> WString {
         }
     }
     WString::from(tail.slice(..len).unwrap_or_else(WStr::empty))
+}
+
+fn content_text<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Value<'gc>,
+) -> Result<Option<crate::string::AvmString<'gc>>, Error<'gc>> {
+    let _ = element_methods::GET_TEXT;
+    let text_name = AvmString::new_utf8(activation.gc(), "text");
+    let text = content
+        .get_public_property(text_name, activation)
+        .unwrap_or_else(|_| istr!("").into());
+    Ok(match text {
+        Value::Null => None,
+        v => Some(v.coerce_to_string(activation)?),
+    })
 }
 
 pub fn create_text_line<'gc>(
@@ -106,14 +124,8 @@ pub fn create_text_line<'gc>(
         return Ok(Value::Null);
     }
 
-    let _ = element_methods::GET_TEXT;
-    let text_name = AvmString::new_utf8(activation.gc(), "text");
-    let text = content
-        .get_public_property(text_name, activation)
-        .unwrap_or_else(|_| istr!("").into());
-    let text = match text {
-        Value::Null => return Ok(Value::Null),
-        v => v.coerce_to_string(activation)?,
+    let Some(text) = content_text(activation, content)? else {
+        return Ok(Value::Null);
     };
 
     let next_line_start = match previous_text_line {
@@ -163,10 +175,8 @@ pub fn create_text_line<'gc>(
         }
     }
     let displayed_text = displayed_text;
-    let spans = FormatSpans::from_text(
-        displayed_text.clone(),
-        format_from_content(activation, content_obj)?,
-    );
+    let (format, tracking_left, tracking_right) = format_from_content(activation, content_obj)?;
+    let spans = FormatSpans::from_text(displayed_text.clone(), format);
     let requested_width = if args.get_f64(1) >= 1_000_000.0 {
         None
     } else {
@@ -182,9 +192,13 @@ pub fn create_text_line<'gc>(
         true,
         FontType::Device,
     );
-    let Some(html_line) = layout.lines().first().cloned() else {
+    let Some(mut html_line) = layout.lines().first().cloned() else {
         return Ok(Value::Null);
     };
+    html_line.trim_edge_tracking(
+        Twips::from_pixels(tracking_left),
+        Twips::from_pixels(tracking_right),
+    );
     let fte_line = FteLine::new(html_line, displayed_text, next_line_start);
     let raw_text_length = fte_line.raw_text_length();
 
@@ -323,13 +337,8 @@ pub fn recreate_text_line<'gc>(
         return Ok(Value::Null);
     }
 
-    let text_name = AvmString::new_utf8(activation.gc(), "text");
-    let text = content
-        .get_public_property(text_name, activation)
-        .unwrap_or_else(|_| istr!("").into());
-    let text = match text {
-        Value::Null => return Ok(Value::Null),
-        v => v.coerce_to_string(activation)?,
+    let Some(text) = content_text(activation, content)? else {
+        return Ok(Value::Null);
     };
 
     let next_line_start = match previous_text_line {
@@ -379,10 +388,8 @@ pub fn recreate_text_line<'gc>(
             }
         }
     }
-    let spans = FormatSpans::from_text(
-        displayed_text.clone(),
-        format_from_content(activation, content_obj)?,
-    );
+    let (format, tracking_left, tracking_right) = format_from_content(activation, content_obj)?;
+    let spans = FormatSpans::from_text(displayed_text.clone(), format);
     let width = args.get_f64(2);
     let requested_width = if width >= 1_000_000.0 {
         None
@@ -399,9 +406,13 @@ pub fn recreate_text_line<'gc>(
         true,
         FontType::Device,
     );
-    let Some(html_line) = layout.lines().first().cloned() else {
+    let Some(mut html_line) = layout.lines().first().cloned() else {
         return Ok(Value::Null);
     };
+    html_line.trim_edge_tracking(
+        Twips::from_pixels(tracking_left),
+        Twips::from_pixels(tracking_right),
+    );
     let fte_line = FteLine::new(html_line, displayed_text, next_line_start);
     let raw_text_length = fte_line.raw_text_length();
 
