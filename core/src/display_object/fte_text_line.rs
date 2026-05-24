@@ -160,7 +160,7 @@ pub struct FteTextLineData<'gc> {
     base: InteractiveObjectBase<'gc>,
     avm2_object: Lock<Option<Avm2StageObject<'gc>>>,
     line: RefLock<FteLine<'gc>>,
-    fallback: Option<EditText<'gc>>,
+    fallback: RefLock<Option<EditText<'gc>>>,
     #[collect(require_static)]
     movie: Arc<SwfMovie>,
 }
@@ -178,7 +178,7 @@ impl<'gc> FteTextLine<'gc> {
                 base: Default::default(),
                 avm2_object: Lock::new(None),
                 line: RefLock::new(line),
-                fallback,
+                fallback: RefLock::new(fallback),
                 movie,
             },
         ))
@@ -186,6 +186,17 @@ impl<'gc> FteTextLine<'gc> {
 
     pub fn line(self) -> Ref<'gc, FteLine<'gc>> {
         Gc::as_ref(self.0).line.borrow()
+    }
+
+    pub fn set_line(
+        self,
+        context: &mut UpdateContext<'gc>,
+        line: FteLine<'gc>,
+        fallback: Option<EditText<'gc>>,
+    ) {
+        let mc = context.gc();
+        unlock!(Gc::write(mc, self.0), FteTextLineData, line).replace(line);
+        *unlock!(Gc::write(mc, self.0), FteTextLineData, fallback).borrow_mut() = fallback;
     }
 }
 
@@ -210,7 +221,7 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
                     ascent: borrowed.ascent,
                     descent: borrowed.descent,
                 }),
-                fallback: self.0.fallback,
+                fallback: RefLock::new(*self.0.fallback.borrow()),
                 movie: self.0.movie.clone(),
             },
         ))
@@ -250,7 +261,7 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
             }
         }
         if !has_renderable_content {
-            if let Some(fallback) = self.0.fallback {
+            if let Some(fallback) = *self.0.fallback.borrow() {
                 fallback.render_self(context);
             }
             return;
