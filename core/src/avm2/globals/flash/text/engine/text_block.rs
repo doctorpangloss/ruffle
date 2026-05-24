@@ -2,6 +2,7 @@ use ruffle_macros::istr;
 
 use crate::avm2::activation::Activation;
 use crate::avm2::error::Error;
+use crate::avm2::function::FunctionArgs;
 use crate::avm2::globals::flash::display::display_object::initialize_for_allocator;
 use crate::avm2::globals::methods::flash_text_engine_content_element as element_methods;
 use crate::avm2::globals::slots::flash_text_engine_content_element as element_slots;
@@ -82,6 +83,63 @@ fn format_from_content<'gc>(
     Ok((format, tracking_left, tracking_right))
 }
 
+fn collect_runs<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Object<'gc>,
+    out: &mut Vec<(WString, TextFormat, f64, f64)>,
+) -> Result<(), Error<'gc>> {
+    let is_group = content.instance_class().name().local_name().to_utf8_lossy() == "GroupElement";
+
+    if is_group {
+        let count_name = crate::string::AvmString::new_utf8(activation.gc(), "elementCount");
+        let get_at_name = crate::string::AvmString::new_utf8(activation.gc(), "getElementAt");
+        let count = Value::from(content)
+            .get_public_property(count_name, activation)?
+            .coerce_to_i32(activation)?;
+
+        for i in 0..count {
+            let child = Value::from(content).call_public_property(
+                get_at_name,
+                FunctionArgs::from_slice(&[Value::from(i)]),
+                activation,
+            )?;
+            if let Some(child) = child.as_object() {
+                collect_runs(activation, child, out)?;
+            }
+        }
+    } else {
+        let _ = element_methods::GET_TEXT;
+        let text_name = AvmString::new_utf8(activation.gc(), "text");
+        let text = Value::from(content)
+            .get_public_property(text_name, activation)
+            .unwrap_or_else(|_| istr!("").into())
+            .coerce_to_string(activation)?;
+        let (format, tracking_left, tracking_right) = format_from_content(activation, content)?;
+        let mut run_text = WString::from(text.as_wstr());
+
+        if let Some(ef) = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object() {
+            let typographic_case = ef
+                .get_slot(format_slots::_TYPOGRAPHIC_CASE)
+                .coerce_to_string(activation)?;
+            let transformed = match typographic_case.to_utf8_lossy().as_ref() {
+                "uppercase" => Some(run_text.to_utf8_lossy().to_uppercase()),
+                "lowercase" => Some(run_text.to_utf8_lossy().to_lowercase()),
+                _ => None,
+            };
+            if let Some(transformed) = transformed {
+                let transformed = WString::from_utf8(&transformed);
+                if transformed.len() == run_text.len() {
+                    run_text = transformed;
+                }
+            }
+        }
+
+        out.push((run_text, format, tracking_left, tracking_right));
+    }
+
+    Ok(())
+}
+
 fn text_until_hard_break(text: &WStr, start: usize) -> WString {
     let tail = text.slice(start..).unwrap_or_else(WStr::empty);
     let mut len = tail.len();
@@ -109,6 +167,51 @@ fn content_text<'gc>(
     })
 }
 
+fn spans_from_content<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Object<'gc>,
+    start: usize,
+) -> Result<(WString, FormatSpans, f64, f64), Error<'gc>> {
+    let mut runs = Vec::new();
+    collect_runs(activation, content, &mut runs)?;
+
+    let mut full_text = WString::new();
+    for (text, ..) in &runs {
+        full_text.push_str(text);
+    }
+
+    let displayed_text = text_until_hard_break(full_text.as_wstr(), start);
+    let end = start + displayed_text.len();
+    let base = match runs.first() {
+        Some((_, format, ..)) => format.clone(),
+        None => TextFormat::default(),
+    };
+    let mut spans = FormatSpans::from_text(displayed_text.clone(), base);
+    let mut leading = 0.0;
+    let mut trailing = 0.0;
+    let mut run_start = 0usize;
+
+    for (run_text, format, tracking_left, tracking_right) in &runs {
+        let run_end = run_start + run_text.len();
+        let lo = run_start.max(start);
+        let hi = run_end.min(end);
+
+        if lo < hi {
+            spans.set_text_format(lo - start, hi - start, format);
+        }
+        if run_start <= start && start < run_end {
+            leading = *tracking_left;
+        }
+        if run_start < end && end <= run_end {
+            trailing = *tracking_right;
+        }
+
+        run_start = run_end;
+    }
+
+    Ok((displayed_text, spans, leading, trailing))
+}
+
 pub fn create_text_line<'gc>(
     activation: &mut Activation<'_, 'gc>,
     this: Value<'gc>,
@@ -119,6 +222,7 @@ pub fn create_text_line<'gc>(
         .expect("TextBlock native method receiver must be an object");
 
     let previous_text_line = args.try_get_object(0);
+
     let content = this.get_slot(block_slots::_CONTENT);
     if matches!(content, Value::Null) {
         return Ok(Value::Null);
@@ -153,30 +257,8 @@ pub fn create_text_line<'gc>(
     let Some(content_obj) = content.as_object() else {
         return Ok(Value::Null);
     };
-    use crate::avm2::globals::slots::flash_text_engine_element_format as format_slots;
-    let mut displayed_text = text_until_hard_break(text.as_wstr(), next_line_start);
-    if let Some(ef) = content_obj
-        .get_slot(element_slots::_ELEMENT_FORMAT)
-        .as_object()
-    {
-        let typographic_case = ef
-            .get_slot(format_slots::_TYPOGRAPHIC_CASE)
-            .coerce_to_string(activation)?;
-        let transformed = match typographic_case.to_utf8_lossy().as_ref() {
-            "uppercase" => Some(displayed_text.to_utf8_lossy().to_uppercase()),
-            "lowercase" => Some(displayed_text.to_utf8_lossy().to_lowercase()),
-            _ => None,
-        };
-        if let Some(transformed) = transformed {
-            let transformed = WString::from_utf8(&transformed);
-            if transformed.len() == displayed_text.len() {
-                displayed_text = transformed;
-            }
-        }
-    }
-    let displayed_text = displayed_text;
-    let (format, tracking_left, tracking_right) = format_from_content(activation, content_obj)?;
-    let spans = FormatSpans::from_text(displayed_text.clone(), format);
+    let (displayed_text, spans, tracking_left, tracking_right) =
+        spans_from_content(activation, content_obj, next_line_start)?;
     let requested_width = if args.get_f64(1) >= 1_000_000.0 {
         None
     } else {
@@ -366,30 +448,8 @@ pub fn recreate_text_line<'gc>(
     let Some(content_obj) = content.as_object() else {
         return Ok(Value::Null);
     };
-    use crate::avm2::globals::slots::flash_text_engine_content_element as element_slots;
-    use crate::avm2::globals::slots::flash_text_engine_element_format as format_slots;
-    let mut displayed_text = text_until_hard_break(text.as_wstr(), next_line_start);
-    if let Some(ef) = content_obj
-        .get_slot(element_slots::_ELEMENT_FORMAT)
-        .as_object()
-    {
-        let typographic_case = ef
-            .get_slot(format_slots::_TYPOGRAPHIC_CASE)
-            .coerce_to_string(activation)?;
-        let transformed = match typographic_case.to_utf8_lossy().as_ref() {
-            "uppercase" => Some(displayed_text.to_utf8_lossy().to_uppercase()),
-            "lowercase" => Some(displayed_text.to_utf8_lossy().to_lowercase()),
-            _ => None,
-        };
-        if let Some(transformed) = transformed {
-            let transformed = WString::from_utf8(&transformed);
-            if transformed.len() == displayed_text.len() {
-                displayed_text = transformed;
-            }
-        }
-    }
-    let (format, tracking_left, tracking_right) = format_from_content(activation, content_obj)?;
-    let spans = FormatSpans::from_text(displayed_text.clone(), format);
+    let (displayed_text, spans, tracking_left, tracking_right) =
+        spans_from_content(activation, content_obj, next_line_start)?;
     let width = args.get_f64(2);
     let requested_width = if width >= 1_000_000.0 {
         None
