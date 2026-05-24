@@ -420,11 +420,11 @@ pub fn recreate_text_line<'gc>(
 
     let content = this.get_slot(block_slots::_CONTENT);
     if matches!(content, Value::Null) {
-        return Ok(Value::Null);
+        return Ok(text_line.into());
     }
 
     let Some(text) = content_text(activation, content)? else {
-        return Ok(Value::Null);
+        return Ok(text_line.into());
     };
 
     let next_line_start = match previous_text_line {
@@ -446,7 +446,7 @@ pub fn recreate_text_line<'gc>(
             istr!("complete").into(),
             activation,
         )?;
-        return Ok(Value::Null);
+        return Ok(text_line.into());
     }
 
     let Some(content_obj) = content.as_object() else {
