@@ -30,6 +30,7 @@ pub struct Atom {
     pub char_end: usize,
     pub x: f32,
     pub width: f32,
+    pub bidi_level: u8,
     pub word_boundary_on_left: bool,
 }
 
@@ -39,7 +40,6 @@ pub struct FteLine<'gc> {
     html_line: LayoutLine<'gc>,
     #[collect(require_static)]
     text: WString,
-    text_block_begin: usize,
     #[collect(require_static)]
     atoms: Vec<Atom>,
     #[collect(require_static)]
@@ -50,44 +50,11 @@ pub struct FteLine<'gc> {
 
 impl<'gc> FteLine<'gc> {
     pub fn new(html_line: LayoutLine<'gc>, text: WString, text_block_begin: usize) -> Self {
+        let atoms = build_atoms(&html_line, &text, text_block_begin);
         let (ascent, descent) = typo_metrics(&html_line, &text);
-        let range = html_line.text_range();
-        let consumes_trailing_hard_break = text
-            .get(range.end)
-            .is_some_and(|unit| matches!(unit, 0x2028 | 0x2029))
-            && range.end + 1 == text.len();
-        let word_bounds = word_boundary_offsets(&text);
-        let mut atoms: Vec<Atom> = range
-            .clone()
-            .map(|pos| Atom {
-                char_start: text_block_begin + pos,
-                char_end: text_block_begin + pos + 1,
-                x: html_line
-                    .char_bounds(pos)
-                    .map(|bounds| bounds.x_min.to_pixels() as f32)
-                    .unwrap_or_else(|| html_line.bounds().width().to_pixels() as f32),
-                width: html_line
-                    .char_bounds(pos)
-                    .map(|bounds| bounds.width().to_pixels() as f32)
-                    .unwrap_or(0.0),
-                word_boundary_on_left: pos == range.start
-                    || word_bounds.binary_search(&pos).is_ok(),
-            })
-            .collect();
-        if consumes_trailing_hard_break {
-            atoms.push(Atom {
-                char_start: text_block_begin + range.end,
-                char_end: text_block_begin + range.end + 1,
-                x: html_line.bounds().width().to_pixels() as f32,
-                width: 0.0,
-                word_boundary_on_left: range.end == range.start
-                    || word_bounds.binary_search(&range.end).is_ok(),
-            });
-        }
         Self {
             html_line,
             text,
-            text_block_begin,
             atoms,
             ascent,
             descent,
@@ -103,13 +70,13 @@ impl<'gc> FteLine<'gc> {
     }
 
     pub fn text_width(&self) -> f32 {
+        let start = self.html_line.text_range().start;
         let chars: Vec<u16> = self.text.iter().collect();
-        for atom in self.atoms.iter().rev() {
-            let pos = atom.char_start.saturating_sub(self.text_block_begin);
-            let blank = chars
-                .get(pos)
-                .map(|c| matches!(c, 0x20 | 0x09 | 0x0a | 0x0d | 0x2028 | 0x2029))
-                .unwrap_or(true);
+        for (i, atom) in self.atoms.iter().enumerate().rev() {
+            let blank = match chars.get(start + i) {
+                Some(&c) => matches!(c, 0x20 | 0x09 | 0x0a | 0x0d | 0x2028 | 0x2029),
+                None => true,
+            };
             if !blank {
                 return atom.x + atom.width;
             }
@@ -138,6 +105,73 @@ impl<'gc> FteLine<'gc> {
     pub fn atoms(&self) -> &[Atom] {
         &self.atoms
     }
+}
+
+fn build_atoms(line: &LayoutLine<'_>, text: &WStr, text_block_begin: usize) -> Vec<Atom> {
+    let range = line.text_range();
+    let line_width = line.bounds().width().to_pixels() as f32;
+    let word_bounds = word_boundary_offsets(text);
+
+    let mut kern_after = vec![0i32; range.len()];
+    for lbox in line.boxes_iter() {
+        let Some((box_text, _tf, font, params, _color)) = lbox.as_renderable_text(text) else {
+            continue;
+        };
+        if !params.kerning || !font.has_kerning_info() {
+            continue;
+        }
+
+        let units: Vec<u16> = box_text.iter().collect();
+        for k in 0..units.len().saturating_sub(1) {
+            let left = char::from_u32(units[k] as u32).unwrap_or(char::REPLACEMENT_CHARACTER);
+            let right = char::from_u32(units[k + 1] as u32).unwrap_or(char::REPLACEMENT_CHARACTER);
+            let twips = font.pair_kerning(params, left, right).get();
+            let Some(i) = (lbox.start() + k).checked_sub(range.start) else {
+                continue;
+            };
+            if let Some(slot) = kern_after.get_mut(i) {
+                *slot = twips;
+            }
+        }
+    }
+
+    let consumes_trailing_hard_break = text
+        .get(range.end)
+        .is_some_and(|unit| matches!(unit, 0x2028 | 0x2029))
+        && range.end + 1 == text.len();
+    let mut atoms = Vec::with_capacity(range.len() + usize::from(consumes_trailing_hard_break));
+    for (i, pos) in range.clone().enumerate() {
+        let (x, width) = match line.char_bounds(pos) {
+            Some(rect) => {
+                let kern_in = if i > 0 { kern_after[i - 1] } else { 0 };
+                let kern_out = kern_after[i];
+                let x = rect.x_min - Twips::new(kern_in / 2);
+                let x_max = rect.x_max - Twips::new(kern_out / 2);
+                (x.to_pixels() as f32, (x_max - x).to_pixels() as f32)
+            }
+            None => (line_width, 0.0),
+        };
+        atoms.push(Atom {
+            char_start: text_block_begin + pos,
+            char_end: text_block_begin + pos + 1,
+            x,
+            width,
+            bidi_level: 0,
+            word_boundary_on_left: pos == range.start || word_bounds.binary_search(&pos).is_ok(),
+        });
+    }
+    if consumes_trailing_hard_break {
+        atoms.push(Atom {
+            char_start: text_block_begin + range.end,
+            char_end: text_block_begin + range.end + 1,
+            x: line_width,
+            width: 0.0,
+            bidi_level: 0,
+            word_boundary_on_left: range.end == range.start
+                || word_bounds.binary_search(&range.end).is_ok(),
+        });
+    }
+    atoms
 }
 
 fn typo_metrics(line: &LayoutLine<'_>, text: &WStr) -> (f32, f32) {
@@ -264,7 +298,6 @@ impl<'gc> TDisplayObject<'gc> for FteTextLine<'gc> {
                 line: RefLock::new(FteLine {
                     html_line: borrowed.html_line.clone(),
                     text: borrowed.text.clone(),
-                    text_block_begin: borrowed.text_block_begin,
                     atoms: borrowed.atoms.clone(),
                     ascent: borrowed.ascent,
                     descent: borrowed.descent,
