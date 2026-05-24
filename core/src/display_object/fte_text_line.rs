@@ -22,6 +22,7 @@ use ruffle_render::quality::StageQuality;
 use ruffle_render::transform::Transform;
 use std::cell::Ref;
 use std::sync::Arc;
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Atom {
@@ -55,6 +56,7 @@ impl<'gc> FteLine<'gc> {
             .get(range.end)
             .is_some_and(|unit| matches!(unit, 0x2028 | 0x2029))
             && range.end + 1 == text.len();
+        let word_bounds = word_boundary_offsets(&text);
         let mut atoms: Vec<Atom> = range
             .clone()
             .map(|pos| Atom {
@@ -69,11 +71,7 @@ impl<'gc> FteLine<'gc> {
                     .map(|bounds| bounds.width().to_pixels() as f32)
                     .unwrap_or(0.0),
                 word_boundary_on_left: pos == range.start
-                    || text
-                        .iter()
-                        .nth(pos)
-                        .map(|c| matches!(c, 0x20 | 0x09 | 0x0a | 0x0d))
-                        .unwrap_or(false),
+                    || word_bounds.binary_search(&pos).is_ok(),
             })
             .collect();
         if consumes_trailing_hard_break {
@@ -83,11 +81,7 @@ impl<'gc> FteLine<'gc> {
                 x: html_line.bounds().width().to_pixels() as f32,
                 width: 0.0,
                 word_boundary_on_left: range.end == range.start
-                    || text
-                        .iter()
-                        .nth(range.end)
-                        .map(|c| matches!(c, 0x20 | 0x09 | 0x0a | 0x0d))
-                        .unwrap_or(false),
+                    || word_bounds.binary_search(&range.end).is_ok(),
             });
         }
         Self {
@@ -168,6 +162,31 @@ fn typo_metrics(line: &LayoutLine<'_>, text: &WStr) -> (f32, f32) {
             line.descent().to_pixels() as f32,
         )
     }
+}
+
+fn word_boundary_offsets(text: &WStr) -> Vec<usize> {
+    let utf8 = text.to_utf8_lossy();
+    let mut prefix = vec![0usize; utf8.len() + 1];
+    let mut utf16 = 0usize;
+    let mut prev = 0usize;
+
+    for (byte, ch) in utf8.char_indices() {
+        for slot in prefix.iter_mut().take(byte + 1).skip(prev) {
+            *slot = utf16;
+        }
+        utf16 += ch.len_utf16();
+        prev = byte + ch.len_utf8();
+    }
+    for slot in prefix.iter_mut().skip(prev) {
+        *slot = utf16;
+    }
+
+    let mut bounds = Vec::new();
+    for (byte, _) in utf8.split_word_bound_indices() {
+        bounds.push(prefix[byte]);
+    }
+    bounds.dedup();
+    bounds
 }
 
 #[derive(Clone, Collect, Copy)]
