@@ -100,8 +100,12 @@ pub fn create_text_line<'gc>(
     let Some(content_obj) = content.as_object() else {
         return Ok(Value::Null);
     };
+    let displayed_text = text
+        .as_wstr()
+        .slice(next_line_start..)
+        .unwrap_or_else(WStr::empty);
     let spans = FormatSpans::from_text(
-        WString::from(text.as_wstr()),
+        WString::from(displayed_text),
         format_from_content(activation, content_obj)?,
     );
     let requested_width = if args.get_f64(1) >= 1_000_000.0 {
@@ -122,7 +126,7 @@ pub fn create_text_line<'gc>(
     let Some(html_line) = layout.lines().first().cloned() else {
         return Ok(Value::Null);
     };
-    let fte_line = FteLine::new(html_line, WString::from(text.as_wstr()), next_line_start);
+    let fte_line = FteLine::new(html_line, WString::from(displayed_text), next_line_start);
     let raw_text_length = fte_line.raw_text_length();
 
     let fallback = EditText::new_fte(
