@@ -119,7 +119,6 @@ pub fn create_text_line<'gc>(
     let Some(content_obj) = content.as_object() else {
         return Ok(Value::Null);
     };
-    use crate::avm2::globals::slots::flash_text_engine_content_element as element_slots;
     use crate::avm2::globals::slots::flash_text_engine_element_format as format_slots;
     let mut displayed_text = WString::from(
         text.as_wstr()
