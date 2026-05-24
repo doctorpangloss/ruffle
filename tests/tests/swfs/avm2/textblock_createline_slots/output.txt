@@ -1,0 +1,3 @@
+rawTextLength: 5
+begin: 0
+specifiedWidth: 321

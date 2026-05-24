@@ -29,6 +29,7 @@ pub fn create_text_line<'gc>(
     if matches!(content, Value::Null) {
         return Ok(Value::Null);
     }
+
     let previous_text_line = args.try_get_object(0);
     let text = match previous_text_line {
         Some(_) => {
@@ -63,6 +64,7 @@ pub fn create_text_line<'gc>(
         15.0,
     );
     fallback.set_text(text.as_wstr(), activation.context);
+
     let content_obj = content.as_object().unwrap();
     let element_format = content_obj
         .get_slot(element_slots::_ELEMENT_FORMAT)
@@ -80,6 +82,7 @@ pub fn create_text_line<'gc>(
         Value::from_usize_lossy(text.len()),
         activation,
     )?;
+    instance.set_slot(line_slots::_TEXT_BLOCK_BEGIN_INDEX, 0.into(), activation)?;
 
     this.set_slot(
         block_slots::_TEXT_LINE_CREATION_RESULT,
