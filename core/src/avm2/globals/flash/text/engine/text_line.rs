@@ -1,12 +1,23 @@
 use crate::avm2::activation::Activation;
 use crate::avm2::error::Error;
 use crate::avm2::value::Value;
+use crate::display_object::FteLine;
+use std::cell::Ref;
+
+fn fte_line<'gc>(this: Value<'gc>) -> Option<Ref<'gc, FteLine<'gc>>> {
+    let line = this.as_object()?.as_display_object()?.as_fte_text_line()?;
+    Some(line.line())
+}
 
 pub fn get_text_width<'gc>(
     activation: &mut Activation<'_, 'gc>,
     this: Value<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
+    if let Some(line) = fte_line(this) {
+        return Ok((line.text_width() as f64).into());
+    }
+
     let this = this.as_object().unwrap();
 
     let display_object = this.as_display_object().unwrap();
@@ -29,6 +40,10 @@ pub fn get_text_height<'gc>(
     this: Value<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
+    if let Some(line) = fte_line(this) {
+        return Ok(((line.ascent() + line.descent()) as f64).into());
+    }
+
     let this = this.as_object().unwrap();
 
     let display_object = this.as_display_object().unwrap();
@@ -44,4 +59,26 @@ pub fn get_text_height<'gc>(
 
     let measured_text = edit_text.measure_text(activation.context);
     Ok(measured_text.1.to_pixels().into())
+}
+
+pub fn get_ascent<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let Some(line) = fte_line(this) else {
+        return Ok(12.0.into());
+    };
+    Ok((line.ascent() as f64).into())
+}
+
+pub fn get_descent<'gc>(
+    _activation: &mut Activation<'_, 'gc>,
+    this: Value<'gc>,
+    _args: &[Value<'gc>],
+) -> Result<Value<'gc>, Error<'gc>> {
+    let Some(line) = fte_line(this) else {
+        return Ok(3.0.into());
+    };
+    Ok((line.descent() as f64).into())
 }

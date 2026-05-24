@@ -1,0 +1,4 @@
+textWidth positive: true
+textHeight positive: true
+ascent positive: true
+descent positive: true

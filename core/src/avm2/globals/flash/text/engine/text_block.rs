@@ -12,9 +12,43 @@ use crate::avm2::globals::slots::flash_text_engine_text_line as line_slots;
 use crate::avm2::object::{Object, TObject};
 use crate::avm2::parameters::ParametersExt;
 use crate::avm2::value::Value;
-use crate::display_object::{EditText, FteTextLine, TDisplayObject};
-use crate::html::TextFormat;
-use crate::string::{AvmString, WStr};
+use crate::display_object::{EditText, FteLine, FteTextLine, TDisplayObject};
+use crate::font::FontType;
+use crate::html::{FormatSpans, TextFormat, lower_from_text_spans};
+use crate::string::{AvmString, WStr, WString};
+use swf::Twips;
+
+fn format_from_content<'gc>(
+    activation: &mut Activation<'_, 'gc>,
+    content: Object<'gc>,
+) -> Result<TextFormat, Error<'gc>> {
+    let mut format = TextFormat {
+        font: Some(WString::from_utf8("_sans")),
+        size: Some(12.0),
+        color: Some(swf::Color::from_rgb(0, 0xff)),
+        ..Default::default()
+    };
+
+    if let Some(ef) = content.get_slot(element_slots::_ELEMENT_FORMAT).as_object() {
+        let color = ef
+            .get_slot(format_slots::_COLOR)
+            .coerce_to_u32(activation)?;
+        format.color = Some(swf::Color::from_rgb(color & 0xff_ffff, 0xff));
+        format.size = Some(
+            ef.get_slot(format_slots::_FONT_SIZE)
+                .coerce_to_number(activation)?,
+        );
+        if let Value::Object(fd) = ef.get_slot(format_slots::_FONT_DESCRIPTION) {
+            format.font = Some(WString::from(
+                fd.get_slot(font_desc_slots::_FONT_NAME)
+                    .coerce_to_string(activation)?
+                    .as_wstr(),
+            ));
+        }
+    }
+
+    Ok(format)
+}
 
 pub fn create_text_line<'gc>(
     activation: &mut Activation<'_, 'gc>,
@@ -25,33 +59,20 @@ pub fn create_text_line<'gc>(
         .as_object()
         .expect("TextBlock native method receiver must be an object");
 
+    let previous_text_line = args.try_get_object(0);
     let content = this.get_slot(block_slots::_CONTENT);
     if matches!(content, Value::Null) {
         return Ok(Value::Null);
     }
 
-    let previous_text_line = args.try_get_object(0);
-    let text = match previous_text_line {
-        Some(_) => {
-            this.set_slot(
-                block_slots::_TEXT_LINE_CREATION_RESULT,
-                istr!("complete").into(),
-                activation,
-            )?;
-            return Ok(Value::Null);
-        }
-        None => {
-            let _ = element_methods::GET_TEXT;
-            let text_name = AvmString::new_utf8(activation.gc(), "text");
-            let txt = content
-                .get_public_property(text_name, activation)
-                .unwrap_or_else(|_| istr!("").into());
-            if matches!(txt, Value::Null) {
-                return Ok(Value::Null);
-            } else {
-                txt.coerce_to_string(activation)?
-            }
-        }
+    let _ = element_methods::GET_TEXT;
+    let text_name = AvmString::new_utf8(activation.gc(), "text");
+    let text = content
+        .get_public_property(text_name, activation)
+        .unwrap_or_else(|_| istr!("").into());
+    let text = match text {
+        Value::Null => return Ok(Value::Null),
+        v => v.coerce_to_string(activation)?,
     };
 
     let next_line_start = match previous_text_line {
@@ -76,7 +97,34 @@ pub fn create_text_line<'gc>(
         return Ok(Value::Null);
     }
 
+    let Some(content_obj) = content.as_object() else {
+        return Ok(Value::Null);
+    };
+    let spans = FormatSpans::from_text(
+        WString::from(text.as_wstr()),
+        format_from_content(activation, content_obj)?,
+    );
+    let requested_width = if args.get_f64(1) >= 1_000_000.0 {
+        None
+    } else {
+        Some(Twips::from_pixels(args.get_f64(1)))
+    };
     let movie = activation.caller_movie_or_root();
+    let layout = lower_from_text_spans(
+        &spans,
+        activation.context,
+        movie.clone(),
+        requested_width,
+        false,
+        true,
+        FontType::Device,
+    );
+    let Some(html_line) = layout.lines().first().cloned() else {
+        return Ok(Value::Null);
+    };
+    let fte_line = FteLine::new(html_line, WString::from(text.as_wstr()));
+    let raw_text_length = fte_line.raw_text_length();
+
     let fallback = EditText::new_fte(
         activation.context,
         movie.clone(),
@@ -86,14 +134,12 @@ pub fn create_text_line<'gc>(
         15.0,
     );
     fallback.set_text(text.as_wstr(), activation.context);
-
-    let content_obj = content.as_object().unwrap();
     let element_format = content_obj
         .get_slot(element_slots::_ELEMENT_FORMAT)
         .as_object();
     apply_format(activation, fallback, text.as_wstr(), element_format)?;
 
-    let fte = FteTextLine::new(activation.context, movie, Some(fallback));
+    let fte = FteTextLine::new(activation.context, movie, fte_line, Some(fallback));
     let class = activation.avm2().classes().textline;
     let instance = initialize_for_allocator(activation.context, fte.into(), class);
 
@@ -101,7 +147,7 @@ pub fn create_text_line<'gc>(
     instance.set_slot(line_slots::_SPECIFIED_WIDTH, args.get_value(1), activation)?;
     instance.set_slot(
         line_slots::_RAW_TEXT_LENGTH,
-        Value::from_usize_lossy(text.len() - next_line_start),
+        Value::from_usize_lossy(raw_text_length),
         activation,
     )?;
     instance.set_slot(
