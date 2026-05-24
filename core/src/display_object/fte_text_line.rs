@@ -10,7 +10,7 @@ use crate::display_object::{
 use crate::events::{ClipEvent, ClipEventResult};
 use crate::html::LayoutLine;
 use crate::prelude::*;
-use crate::string::WString;
+use crate::string::{WStr, WString};
 use crate::tag_utils::SwfMovie;
 use core::fmt;
 use gc_arena::barrier::unlock;
@@ -46,8 +46,7 @@ pub struct FteLine<'gc> {
 
 impl<'gc> FteLine<'gc> {
     pub fn new(html_line: LayoutLine<'gc>, text: WString, text_block_begin: usize) -> Self {
-        let ascent = html_line.ascent().to_pixels() as f32;
-        let descent = html_line.descent().to_pixels() as f32;
+        let (ascent, descent) = typo_metrics(&html_line, &text);
         let atoms = html_line
             .text_range()
             .map(|pos| Atom {
@@ -108,6 +107,30 @@ impl<'gc> FteLine<'gc> {
 
     pub fn atoms(&self) -> &[Atom] {
         &self.atoms
+    }
+}
+
+fn typo_metrics(line: &LayoutLine<'_>, text: &WStr) -> (f32, f32) {
+    let mut ascent = 0.0_f32;
+    let mut descent = 0.0_f32;
+    let mut found = false;
+
+    for lbox in line.boxes_iter() {
+        if let Some((_, _, font_set, params, _)) = lbox.as_renderable_text(text) {
+            let font = font_set.main_font();
+            ascent = ascent.max(font.typo_ascent(params.height()).to_pixels() as f32);
+            descent = descent.max(font.typo_descent(params.height()).to_pixels() as f32);
+            found = true;
+        }
+    }
+
+    if found {
+        (ascent, descent)
+    } else {
+        (
+            line.ascent().to_pixels() as f32,
+            line.descent().to_pixels() as f32,
+        )
     }
 }
 
