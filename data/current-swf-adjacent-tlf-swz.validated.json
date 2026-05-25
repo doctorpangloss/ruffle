@@ -1,0 +1,789 @@
+{
+  "generated_at": "2026-05-25",
+  "method": "Validated adjacent textLayout SWZ candidates by range-reading DER PKCS#7/CMS SWZ header through swf-proxy",
+  "checked_count": 754,
+  "first_pass_count": 80,
+  "valid_count": 27,
+  "items": [
+    {
+      "title": "Multics Email Simulator",
+      "url": "https://static01.nyt.com/packages/flash/opinion/20110620-morris-emulator/Multics.swf",
+      "kind": "included",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Pinned local TLF example mirrored with textLayout_1.0.0.595.swz and sibling FLVs."
+      ],
+      "sources": [
+        "NYTimes"
+      ],
+      "archiveUrl": null,
+      "tlfAdjacent": true,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_1.0.0.595.swz",
+          "mode": "local",
+          "target": "multics/textLayout_1.0.0.595.swz",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "title": "Weed to Wonder: Domestication",
+      "url": "https://new.weedtowonder.org/ch2-domestication.swf",
+      "kind": "included",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Mirrored locally with TLF 2.0.0.232"
+      ],
+      "sources": [],
+      "archiveUrl": null,
+      "baseDir": "https://new.weedtowonder.org/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Weed to Wonder: Introduction",
+      "url": "https://new.weedtowonder.org/ch1-introduction.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/10173",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/10173"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://new.weedtowonder.org/ch1-introduction.swf",
+      "baseDir": "https://new.weedtowonder.org/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Weed to Wonder: Home",
+      "url": "http://new.weedtowonder.org/w2w-home.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/8958",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/8958",
+        "https://github.com/ruffle-rs/ruffle/issues/8006"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/http://new.weedtowonder.org/w2w-home.swf",
+      "baseDir": "http://new.weedtowonder.org/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "http://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/http://new.weedtowonder.org/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Anbot",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/Anbot.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/10546",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/10546"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/Anbot.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Blackbeard's Assault",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/blackbeardsassault.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11644",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11644"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/blackbeardsassault.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Bubble Shooter Classic",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/bubble-shooter-classic.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/14600",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/14600"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/bubble-shooter-classic.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Chinese Zodiac Mahjong",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/chinesezodiacmahjong.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11751",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11751"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/chinesezodiacmahjong.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Classic Snakes",
+      "url": "https://funkypotato.com/gamez/classic-snakes.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/14136",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/14136"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://funkypotato.com/gamez/classic-snakes.swf",
+      "baseDir": "https://funkypotato.com/gamez/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Doodle Jump",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/doodlejump.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/10759",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/10759"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/doodlejump.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Dukateers: Bling Bling Blaster",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/dukateersblingblingblaster.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/14099",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/14099",
+        "https://github.com/ruffle-rs/ruffle/issues/11932"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/dukateersblingblingblaster.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "FlippingBook: ESALQ Publication",
+      "url": "https://www2.esalq.usp.br/acom/EN_FB/EN_6/EN_41/files/flash/flippingbook.swf",
+      "kind": "textlayout-example",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Validated live TextLayout/Flex example with sibling libs/textLayout_2.0.0.232.swz."
+      ],
+      "sources": [
+        "web search: textLayout_2.0.0.232.swz FlippingBook index"
+      ],
+      "archiveUrl": null,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www2.esalq.usp.br/acom/EN_FB/EN_6/EN_41/files/flash/libs/textLayout_2.0.0.232.swz",
+          "status": 200,
+          "content_type": "",
+          "length": null
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "FlippingBook: LAMTC Catalog",
+      "url": "https://lamtc.com/mtc_catalog/publish20140721_rev/files/flash/flippingbook.swf",
+      "kind": "textlayout-example",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Validated live TextLayout/Flex example with sibling libs/textLayout_2.0.0.232.swz."
+      ],
+      "sources": [
+        "web search: textLayout_2.0.0.232.swz FlippingBook index"
+      ],
+      "archiveUrl": null,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://lamtc.com/mtc_catalog/publish20140721_rev/files/flash/libs/textLayout_2.0.0.232.swz",
+          "status": 200,
+          "content_type": "",
+          "length": null
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "FlippingBook: Laudato Si",
+      "url": "https://sandhurst.catholic.org.au/sandpiper/Laudatosibook/files/flash/flippingbook.swf",
+      "kind": "textlayout-example",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Validated live TextLayout/Flex example with sibling libs/textLayout_2.0.0.232.swz."
+      ],
+      "sources": [
+        "web search: textLayout_2.0.0.232.swz FlippingBook index"
+      ],
+      "archiveUrl": null,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://sandhurst.catholic.org.au/sandpiper/Laudatosibook/files/flash/libs/textLayout_2.0.0.232.swz",
+          "status": 200,
+          "content_type": "",
+          "length": null
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "FlippingBook: Rachid",
+      "url": "https://www.cours-rpc-saintpaul.fr/Flipping/rachid/files/flash/flippingbook.swf",
+      "kind": "textlayout-example",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Validated live TextLayout/Flex example with sibling libs/textLayout_2.0.0.232.swz."
+      ],
+      "sources": [
+        "web search: textLayout_2.0.0.232.swz FlippingBook index"
+      ],
+      "archiveUrl": null,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.cours-rpc-saintpaul.fr/Flipping/rachid/files/flash/libs/textLayout_2.0.0.232.swz",
+          "status": 200,
+          "content_type": "",
+          "length": null
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "FlippingBook: Tsz Shan Newsletter",
+      "url": "https://www.tszshan.org/home/newsletter/nov2013/files/flash/flippingbook.swf",
+      "kind": "textlayout-example",
+      "issue": null,
+      "issues": [],
+      "notes": [
+        "Validated live TextLayout/Flex example with sibling libs/textLayout_2.0.0.232.swz."
+      ],
+      "sources": [
+        "web search: textLayout_2.0.0.232.swz FlippingBook index"
+      ],
+      "archiveUrl": null,
+      "adjacentSwz": [
+        {
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.tszshan.org/home/newsletter/nov2013/files/flash/libs/textLayout_2.0.0.232.swz",
+          "status": 200,
+          "content_type": "",
+          "length": null
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Forty Thieves Solitaire",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/fortythievessolitaire.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/15165",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/15165",
+        "https://github.com/ruffle-rs/ruffle/issues/10975"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/fortythievessolitaire.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Gun Mayhem 2",
+      "url": "https://funkypotato.com/gamez/gun-mayhem-2-more-mayhem.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/6322",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/6322"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://funkypotato.com/gamez/gun-mayhem-2-more-mayhem.swf",
+      "baseDir": "https://funkypotato.com/gamez/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Happy Pet Picture Matching",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/happypetpicturematching.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11443",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11443"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/happypetpicturematching.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Island Clash",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/islandclash.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11991",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11991"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/islandclash.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Must Pop Words",
+      "url": "https://funkypotato.com/gamez/must-pop-words.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/13918",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/13918",
+        "https://github.com/ruffle-rs/ruffle/issues/13917"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://funkypotato.com/gamez/must-pop-words.swf",
+      "baseDir": "https://funkypotato.com/gamez/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Orchestrated Death 2",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/OrchestratedDeathII.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/12792",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/12792"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/OrchestratedDeathII.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Roll Me",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/rollme.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11613",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11613"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/rollme.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Snipr",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/snipr.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11677",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11677"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/snipr.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Toon Cup 2013",
+      "url": "https://flashga.me/public/storage/games/toon-cup-2013-files/launcher-fixed.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11887",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11887"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://flashga.me/public/storage/games/toon-cup-2013-files/launcher-fixed.swf",
+      "baseDir": "https://flashga.me/public/storage/games/toon-cup-2013-files/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://flashga.me/public/storage/games/toon-cup-2013-files/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "text/plain",
+          "length": null,
+          "final": "https://swf-proxy.appmana.com/proxy/https://flashga.me/public/storage/games/toon-cup-2013-files/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Word Kingdom",
+      "url": "https://funkypotato.com/gamez/word-kingdom.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/13916",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/13916"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://funkypotato.com/gamez/word-kingdom.swf",
+      "baseDir": "https://funkypotato.com/gamez/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://funkypotato.com/gamez/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    },
+    {
+      "title": "Zen Blaster",
+      "url": "https://www.spiele-umsonst.de/azad/downloads/flashgames/zenblaster.swf",
+      "kind": "issue-url",
+      "issue": "https://github.com/ruffle-rs/ruffle/issues/11290",
+      "issues": [
+        "https://github.com/ruffle-rs/ruffle/issues/11290"
+      ],
+      "notes": [
+        "Direct .swf URL extracted from upstream issue body/comment"
+      ],
+      "sources": [],
+      "archiveUrl": "https://web.archive.org/web/2id_/https://www.spiele-umsonst.de/azad/downloads/flashgames/zenblaster.swf",
+      "baseDir": "https://www.spiele-umsonst.de/azad/downloads/flashgames/",
+      "adjacentSwz": [
+        {
+          "ok": true,
+          "name": "textLayout_2.0.0.232.swz",
+          "mode": "direct",
+          "target": "https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "status": 206,
+          "content_type": "",
+          "length": "186404",
+          "final": "https://swf-proxy.appmana.com/proxy/https://www.spiele-umsonst.de/azad/downloads/flashgames/textLayout_2.0.0.232.swz",
+          "range_length": "16",
+          "first16": "308302d81f06092a864886f70d010702"
+        }
+      ],
+      "tlfAdjacent": true
+    }
+  ]
+}

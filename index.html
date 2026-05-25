@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ruffle FTE Web Demo</title>
+    <link rel="stylesheet" href="site.css" />
+  </head>
+  <body>
+    <div class="comparison-shell">
+      <aside class="swf-sidebar">
+        <h1>Ruffle FTE Compare</h1>
+        <p>Click a SWF to load it in upstream master and the FTE PR branch.</p>
+        <input id="swf-filter" type="search" placeholder="Filter SWFs or issue numbers" />
+        <form id="custom-swf-form" class="custom-swf-form">
+          <input id="custom-swf-url" type="url" placeholder="Paste any SWF URL" />
+          <button type="submit">Play</button>
+        </form>
+        <nav class="nav">
+          <a href="issues.html">Text issues</a>
+          <a href="https://github.com/doctorpangloss/ruffle/tree/prs-4-fte-observable-split">Branch</a>
+        </nav>
+        <p id="swf-count">Loading SWFs...</p>
+        <div id="swf-list" class="swf-list"></div>
+      </aside>
+      <main class="fullscreen-compare">
+        <header class="compare-header">
+          <div>
+            <strong id="selected-title">Loading...</strong>
+            <span id="selected-url"></span>
+          </div>
+          <a id="selected-issue" class="button" href="issues.html">Issue</a>
+        </header>
+        <section class="fullscreen-grid" aria-label="Ruffle comparison">
+          <div class="fullscreen-panel">
+            <h2>upstream master</h2>
+            <iframe id="master-frame" class="fullscreen-frame" title="Ruffle master comparison" allow="autoplay; fullscreen; clipboard-read; clipboard-write; gamepad; microphone; camera; display-capture"></iframe>
+          </div>
+          <div class="fullscreen-panel">
+            <h2>FTE PR branch</h2>
+            <iframe id="pr-frame" class="fullscreen-frame" title="Ruffle FTE PR comparison" allow="autoplay; fullscreen; clipboard-read; clipboard-write; gamepad; microphone; camera; display-capture"></iframe>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="swf-list.js"></script>
+  </body>
+</html>
