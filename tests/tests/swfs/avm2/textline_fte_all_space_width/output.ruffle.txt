@@ -1,0 +1,3 @@
+atoms remain visible to API: true
+advance still exists: false
+textWidth is zero: false

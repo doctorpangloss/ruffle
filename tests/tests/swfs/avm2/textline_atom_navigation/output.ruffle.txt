@@ -1,0 +1,21 @@
+atomCount=9
+  atom 0 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 1 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 2 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 3 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 4 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 5 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 6 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 7 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  atom 8 center=1.00 bidi=0 wordLeft=false begin=0 end=0
+  charIndex 0 -> atom -1
+  charIndex 1 -> atom -1
+  charIndex 2 -> atom -1
+  charIndex 3 -> atom -1
+  charIndex 4 -> atom -1
+  charIndex 5 -> atom -1
+  charIndex 6 -> atom -1
+  charIndex 7 -> atom -1
+  charIndex 8 -> atom -1
+  pointAt 50 -> atom -1
+  pointAt 9999 -> atom -1

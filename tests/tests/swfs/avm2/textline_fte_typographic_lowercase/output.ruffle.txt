@@ -1,0 +1,3 @@
+lowercase narrows caps: false
+lowercase preserves atoms: true
+same lowercase text matches: false

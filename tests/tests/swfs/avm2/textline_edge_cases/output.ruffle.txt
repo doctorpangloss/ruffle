@@ -1,0 +1,2 @@
+kerningOff: textWidth=106.00
+maxWidth: atomCount=14

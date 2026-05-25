@@ -1,0 +1,6 @@
+lineCount=1
+firstLine.previousLine null=true
+lastLine.nextLine null=true
+firstLine.textBlock==tb: true
+forwardWalk=1
+backwardWalk=1

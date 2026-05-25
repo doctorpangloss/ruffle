@@ -1,0 +1,42 @@
+=== plain word, no terminator ===
+Hello: rawTextLength=5 atomCount=5 textBlockBeginIndex=0 hasGraphicElement=false
+  atom 0: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 1: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 2: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 3: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 4: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+atomIndexAtCharIndex:
+  char 0 -> atom -1
+  char 1 -> atom -1
+  char 2 -> atom -1
+  char 3 -> atom -1
+  char 4 -> atom -1
+  char 5 -> atom -1
+=== text with paragraph terminator ===
+Hi+PS: rawTextLength=3 atomCount=3 textBlockBeginIndex=0 hasGraphicElement=false
+  atom 0: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 1: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 2: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+=== two paragraphs, wrap into lines ===
+line1: rawTextLength=8 atomCount=8 textBlockBeginIndex=0 hasGraphicElement=false
+  atom 0: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 1: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 2: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 3: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 4: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 5: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 6: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 7: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+line2: null
+line3: rawTextLength=8 atomCount=8 textBlockBeginIndex=0 hasGraphicElement=false
+  atom 0: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 1: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 2: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 3: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 4: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 5: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 6: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+  atom 7: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false
+=== empty paragraph ===
+emptyPara: rawTextLength=1 atomCount=1 textBlockBeginIndex=0 hasGraphicElement=false
+  atom 0: tbBegin=0 tbEnd=0 bidi=0 wordBoundaryLeft=false

@@ -1,0 +1,12 @@
+nested group: textWidth=0.00 atomCount=11 ascent=12.00
+  atom 0 x=0.00 width=0.00
+  atom 1 x=0.00 width=0.00
+  atom 2 x=0.00 width=0.00
+  atom 3 x=0.00 width=0.00
+  atom 4 x=0.00 width=0.00
+  atom 5 x=0.00 width=0.00
+  atom 6 x=0.00 width=0.00
+  atom 7 x=0.00 width=0.00
+  atom 8 x=0.00 width=0.00
+  atom 9 x=0.00 width=0.00
+  atom 10 x=0.00 width=0.00

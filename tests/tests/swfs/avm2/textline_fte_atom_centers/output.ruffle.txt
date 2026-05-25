@@ -1,0 +1,6 @@
+0 center in bounds: false
+0 center midpoint: false
+1 center in bounds: false
+1 center midpoint: false
+2 center in bounds: false
+2 center midpoint: false

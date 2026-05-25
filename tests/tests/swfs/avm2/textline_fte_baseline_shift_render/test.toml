@@ -1,0 +1,13 @@
+num_ticks = 1
+
+[fonts.libsans]
+family = "Liberation Sans"
+path = "LiberationSans-Regular.ttf"
+
+[image_comparisons.output]
+known_failure = true
+tolerance = 0
+max_outliers = 0
+
+[player_options]
+with_renderer = { optional = false, quality = "high" }

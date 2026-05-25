@@ -1,0 +1,6 @@
+begin -1: 0
+end -1: 0
+begin 1: 0
+end 1: 0
+char -1: -1
+char 1: -1

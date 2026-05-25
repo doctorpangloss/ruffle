@@ -1,0 +1,6 @@
+char 0 -> atom -1
+char 1 -> atom -1
+char 2 -> atom -1
+char 3 -> atom -1
+char 4 -> atom -1
+char 5 -> atom -1

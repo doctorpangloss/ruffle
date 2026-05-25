@@ -1,0 +1,5 @@
+small ascent typographic: false
+small descent typographic: false
+large ascent typographic: false
+large descent typographic: false
+ascent scales by size: false

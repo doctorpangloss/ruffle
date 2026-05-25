@@ -1,0 +1,6 @@
+--- no tracking (trackingRight=0) ---
+  line 0 [0,71) width=138 "Send an e-mail using an authentic simulation of the CTSS e-mail program"
+  lineCount=1
+--- authored -3% (trackingRight=-0.36) ---
+  line 0 [0,71) width=138 "Send an e-mail using an authentic simulation of the CTSS e-mail program"
+  lineCount=1

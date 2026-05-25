@@ -1,0 +1,5 @@
+same object: true
+raw length changed: false
+atom count: 8
+specified width: 400
+result: success

@@ -1,0 +1,3 @@
+kerning changes width: false
+kerning tightens AV: false
+kerning keeps atoms: true

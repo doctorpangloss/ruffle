@@ -1,0 +1,5 @@
+none: atom0.top=0.00 atom0.height=0.00 ascent=12.00 descent=3.00 textWidth=73.00
++6: atom0.top=0.00 atom0.height=0.00 ascent=12.00 descent=3.00 textWidth=52.00
+-6: atom0.top=0.00 atom0.height=0.00 ascent=12.00 descent=3.00 textWidth=47.00
+superscript: atom0.top=0.00 atom0.height=0.00 ascent=12.00 descent=3.00 textWidth=127.00
+subscript: atom0.top=0.00 atom0.height=0.00 ascent=12.00 descent=3.00 textWidth=109.00

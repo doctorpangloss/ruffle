@@ -1,0 +1,15 @@
+sentence width=60:
+  line 0 [0,43) textWidth=56.0 "The quick brown fox jumps over the lazy dog"
+  lineCount=1
+sentence width=120:
+  line 0 [0,43) textWidth=109.0 "The quick brown fox jumps over the lazy dog"
+  lineCount=1
+sentence width=240:
+  line 0 [0,43) textWidth=230.0 "The quick brown fox jumps over the lazy dog"
+  lineCount=1
+sentence width=10000:
+  line 0 [0,43) textWidth=283.0 "The quick brown fox jumps over the lazy dog"
+  lineCount=1
+longword width=80:
+  line 0 [0,34) textWidth=75.0 "supercalifragilisticexpialidocious"
+  lineCount=1

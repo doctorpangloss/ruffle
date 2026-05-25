@@ -1,0 +1,3 @@
+same object narrowed: false
+begin unchanged: 0
+specified width: 400

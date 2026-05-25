@@ -1,0 +1,2 @@
+totalAscent mirrors ascent: true
+totalDescent mirrors descent: true

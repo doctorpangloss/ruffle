@@ -1,0 +1,2 @@
+tracking delta is interior gaps: false
+tracking keeps atom count: true

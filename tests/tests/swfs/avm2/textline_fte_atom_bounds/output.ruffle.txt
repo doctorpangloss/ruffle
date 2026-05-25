@@ -1,0 +1,5 @@
+first width positive: false
+second width positive: false
+first before second: false
+height matches: false
+y matches ascent: false
