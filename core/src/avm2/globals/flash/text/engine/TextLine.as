@@ -37,7 +37,7 @@ package flash.text.engine {
         [API("670")]
         public function get totalAscent():Number {
             stub_getter("flash.text.engine.TextLine", "totalAscent");
-            return 12.0;
+            return this.ascent;
         }
 
         public native function get descent():Number;
@@ -45,7 +45,7 @@ package flash.text.engine {
         [API("670")]
         public function get totalDescent():Number {
             stub_getter("flash.text.engine.TextLine", "totalDescent");
-            return 3.0;
+            return this.descent;
         }
 
         public function get unjustifiedTextWidth():Number {
