@@ -390,7 +390,7 @@ pub fn do_create_text_line<'gc>(
 
     text_line.set_text_block(Some(block), activation.gc());
     text_line.set_specified_width(width);
-    text_line.set_raw_text_length(text.len() as u32);
+    text_line.set_raw_text_length(subtext.len() as u32);
     text_line.set_begin_index(previous_position as u32);
     text_line.set_end_index(next_position as u32);
     text_line.set_line_index(line_index);
@@ -398,10 +398,11 @@ pub fn do_create_text_line<'gc>(
     if let Some(previous_line) = previous_text_line {
         text_line.set_previous_line(Some(previous_line), activation.gc());
         previous_line.set_next_line(Some(text_line), activation.gc());
+    } else {
+        block.set_first_line(Some(text_line_instance.into()), activation.gc());
     }
 
     block.set_text_line_creation_result(Some(TextLineCreationResultValue::Success));
-    block.set_first_line(Some(text_line_instance.into()), activation.gc());
 
     Ok(text_line_instance.into())
 }
@@ -443,8 +444,8 @@ fn get_text_from_content<'gc>(
 fn next_line_break(text: &WStr, start: usize) -> usize {
     let len = text[start..]
         .iter()
-        .position(|ch| ch == b'\n' as u16)
-        // Include the newline.
+        .position(|ch| matches!(ch, 0x0A | 0x2028 | 0x2029))
+        // Include the separator.
         .map(|pos| pos + 1);
 
     if let Some(len) = len {
