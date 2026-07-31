@@ -94,6 +94,13 @@ impl<'gc> TextLine<'gc> {
         self.0.fallback.measure_text(context)
     }
 
+    pub fn metrics(self) -> (Twips, Twips) {
+        let layout = self.0.fallback.layout();
+        let line = layout.lines().first();
+        line.map(|line| (line.ascent(), line.descent()))
+            .unwrap_or_default()
+    }
+
     pub fn fallback(self) -> EditText<'gc> {
         self.0.fallback
     }

@@ -32,10 +32,7 @@ package flash.text.engine {
         // it only exists so AS-side releaseLines() can clear textBlock.
         internal native function setTextBlock(value:TextBlock):void;
 
-        public function get ascent():Number {
-            stub_getter("flash.text.engine.TextLine", "ascent");
-            return 12.0;
-        }
+        public native function get ascent():Number;
 
         [API("670")]
         public function get totalAscent():Number {
