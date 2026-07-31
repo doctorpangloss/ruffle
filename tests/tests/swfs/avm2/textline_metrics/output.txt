@@ -1,0 +1,3 @@
+size=10 ascent=8 descent=2 totalAscent=8 totalDescent=2
+size=20 ascent=16 descent=4 totalAscent=16 totalDescent=4
+size=40 ascent=32 descent=8 totalAscent=32 totalDescent=8
