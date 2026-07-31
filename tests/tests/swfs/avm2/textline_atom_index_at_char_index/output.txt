@@ -1,0 +1,20 @@
+line 0 textBlockBeginIndex=0 rawTextLength=3 atomCount=3
+  getAtomIndexAtCharIndex(-2)=-1
+  getAtomIndexAtCharIndex(-1)=-1
+  getAtomIndexAtCharIndex(0)=0
+  getAtomIndexAtCharIndex(1)=1
+  getAtomIndexAtCharIndex(2)=2
+  getAtomIndexAtCharIndex(3)=-1
+  getAtomIndexAtCharIndex(4)=-1
+  getAtomIndexAtCharIndex(5)=-1
+  getAtomIndexAtCharIndex(100)=-1
+line 1 textBlockBeginIndex=3 rawTextLength=2 atomCount=2
+  getAtomIndexAtCharIndex(-2)=-1
+  getAtomIndexAtCharIndex(-1)=-1
+  getAtomIndexAtCharIndex(0)=-1
+  getAtomIndexAtCharIndex(1)=-1
+  getAtomIndexAtCharIndex(2)=-1
+  getAtomIndexAtCharIndex(3)=0
+  getAtomIndexAtCharIndex(4)=1
+  getAtomIndexAtCharIndex(5)=-1
+  getAtomIndexAtCharIndex(100)=-1
