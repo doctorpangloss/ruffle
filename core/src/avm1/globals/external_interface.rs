@@ -10,6 +10,7 @@ use crate::avm1::parameters::{ParametersExt, UndefinedAs};
 use crate::avm1::property_decl::{DeclContext, PropertyOrder, StaticDeclarations, SystemClass};
 use crate::avm1::{NativeObject, Object, Value};
 use crate::avm1_stub;
+use crate::display_object::TDisplayObject;
 use crate::external::{Callback, ExternalInterface, Value as ExternalValue};
 
 const OBJECT_DECLS: StaticDeclarations = declare_static_properties! {
@@ -54,7 +55,14 @@ pub fn get_available<'gc>(
     _this: Object<'gc>,
     _args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    Ok(activation.context.external_interface.available().into())
+    Ok(is_available(activation).into())
+}
+
+fn is_available(activation: &Activation<'_, '_>) -> bool {
+    activation
+        .context
+        .external_interface
+        .available_for_movie(activation.base_clip().movie().url())
 }
 
 pub fn add_callback<'gc>(
@@ -62,7 +70,7 @@ pub fn add_callback<'gc>(
     _this: Object<'gc>,
     args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    if !activation.context.external_interface.available() || args.len() < 3 {
+    if !is_available(activation) || args.len() < 3 {
         return Ok(false.into());
     }
 
@@ -89,7 +97,7 @@ pub fn call<'gc>(
     _this: Object<'gc>,
     args: &[Value<'gc>],
 ) -> Result<Value<'gc>, Error<'gc>> {
-    if !activation.context.external_interface.available() {
+    if !is_available(activation) {
         return Ok(Value::Null);
     }
 

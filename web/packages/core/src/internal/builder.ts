@@ -34,7 +34,13 @@ export function configureBuilder(
     // Guard things for being explicitly set, so that we don't need to specify defaults in yet another place...
 
     if (isExplicit(config.allowScriptAccess)) {
-        builder.setAllowScriptAccess(config.allowScriptAccess);
+        if (config.allowScriptAccess === "sameDomain") {
+            builder.setAllowScriptAccess(true);
+            builder.setScriptAccessAllowedOrigin(window.location.origin);
+        } else {
+            builder.setAllowScriptAccess(config.allowScriptAccess);
+            builder.setScriptAccessAllowedOrigin();
+        }
     }
     if (isExplicit(config.backgroundColor)) {
         builder.setBackgroundColor(parseColor(config.backgroundColor));

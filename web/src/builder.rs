@@ -36,6 +36,7 @@ use web_sys::{HtmlCanvasElement, HtmlElement};
 #[derive(Debug, Clone)]
 pub struct RuffleInstanceBuilder {
     pub(crate) allow_script_access: bool,
+    pub(crate) script_access_allowed_origin: Option<String>,
     pub(crate) background_color: Option<Color>,
     pub(crate) letterbox: Letterbox,
     pub(crate) upgrade_to_https: bool,
@@ -76,6 +77,7 @@ impl Default for RuffleInstanceBuilder {
 
         Self {
             allow_script_access: false,
+            script_access_allowed_origin: None,
             background_color: None,
             letterbox: Letterbox::Fullscreen,
             upgrade_to_https: true,
@@ -120,6 +122,11 @@ impl RuffleInstanceBuilder {
     #[wasm_bindgen(js_name = "setAllowScriptAccess")]
     pub fn set_allow_script_access(&mut self, value: bool) {
         self.allow_script_access = value;
+    }
+
+    #[wasm_bindgen(js_name = "setScriptAccessAllowedOrigin")]
+    pub fn set_script_access_allowed_origin(&mut self, value: Option<String>) {
+        self.script_access_allowed_origin = value;
     }
 
     #[wasm_bindgen(js_name = "setBackgroundColor")]
@@ -682,7 +689,10 @@ impl RuffleInstanceBuilder {
 
         // Create the external interface.
         if self.allow_script_access && self.allow_networking == NetworkingAccessMode::All {
-            let interface = Box::new(JavascriptInterface::new(js_player.clone()));
+            let interface = Box::new(JavascriptInterface::new(
+                js_player.clone(),
+                self.script_access_allowed_origin.clone(),
+            ));
             builder = builder
                 .with_external_interface(interface.clone())
                 .with_fs_commands(interface);

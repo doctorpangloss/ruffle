@@ -26,10 +26,17 @@ pub fn call<'gc>(
 }
 
 fn check_available<'gc>(activation: &mut Activation<'_, 'gc>) -> Result<(), Error<'gc>> {
-    if !activation.context.external_interface.available() {
+    if !is_available(activation) {
         return Err(make_error_2067(activation));
     }
     Ok(())
+}
+
+fn is_available(activation: &Activation<'_, '_>) -> bool {
+    activation
+        .context
+        .external_interface
+        .available_for_movie(activation.caller_movie_or_root().url())
 }
 
 pub fn get_available<'gc>(
@@ -37,7 +44,7 @@ pub fn get_available<'gc>(
     _this: Value<'gc>,
     _args: FunctionArgs<'_, 'gc>,
 ) -> Result<Value<'gc>, Error<'gc>> {
-    Ok(activation.context.external_interface.available().into())
+    Ok(is_available(activation).into())
 }
 
 pub fn add_callback<'gc>(

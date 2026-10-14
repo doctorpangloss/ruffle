@@ -353,6 +353,10 @@ impl FsCommandProvider for NullFsCommandProvider {
 }
 
 pub trait ExternalInterfaceProvider {
+    fn is_available_for_movie(&self, _movie_url: &str) -> bool {
+        true
+    }
+
     fn call_method(&self, context: &mut UpdateContext<'_>, name: &str, args: &[Value]) -> Value;
 
     fn on_callback_available(&self, name: &str);
@@ -414,6 +418,12 @@ impl<'gc> ExternalInterface<'gc> {
 
     pub fn available(&self) -> bool {
         self.provider.is_some()
+    }
+
+    pub fn available_for_movie(&self, movie_url: &str) -> bool {
+        self.provider
+            .as_ref()
+            .is_some_and(|provider| provider.is_available_for_movie(movie_url))
     }
 
     pub fn get_id(&self) -> Option<String> {

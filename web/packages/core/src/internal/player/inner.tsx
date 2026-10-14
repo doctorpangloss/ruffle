@@ -2586,7 +2586,7 @@ function parseBoolean(value: string | null): boolean | null {
 function parseAllowScriptAccess(
     access: string | null,
     url: string,
-): boolean | null {
+): boolean | "sameDomain" | null {
     switch (access?.toLowerCase()) {
         case "always":
             return true;
@@ -2597,7 +2597,9 @@ function parseAllowScriptAccess(
                 return (
                     new URL(window.location.href).origin ===
                     new URL(url, window.location.href).origin
-                );
+                )
+                    ? "sameDomain"
+                    : false;
             } catch {
                 return false;
             }

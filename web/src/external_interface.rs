@@ -20,15 +20,26 @@ extern "C" {
 #[derive(Clone)]
 pub struct JavascriptInterface {
     js_player: JavascriptPlayer,
+    allowed_origin: Option<String>,
 }
 
 impl JavascriptInterface {
-    pub fn new(js_player: JavascriptPlayer) -> Self {
-        Self { js_player }
+    pub fn new(js_player: JavascriptPlayer, allowed_origin: Option<String>) -> Self {
+        Self {
+            js_player,
+            allowed_origin,
+        }
     }
 }
 
 impl ExternalInterfaceProvider for JavascriptInterface {
+    fn is_available_for_movie(&self, movie_url: &str) -> bool {
+        self.allowed_origin.as_ref().is_none_or(|allowed_origin| {
+            url::Url::parse(movie_url)
+                .is_ok_and(|url| url.origin().ascii_serialization() == *allowed_origin)
+        })
+    }
+
     fn call_method(&self, context: &mut UpdateContext<'_>, name: &str, args: &[Value]) -> Value {
         let old_context = CURRENT_CONTEXT.with(|v| {
             v.replace(Some(unsafe {

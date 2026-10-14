@@ -407,13 +407,14 @@ export enum GamepadButton {
 export interface BaseLoadOptions {
     /**
      * If set to true, the movie is allowed to interact with the page through
-     * JavaScript, using a flash concept called `ExternalInterface`.
+     * JavaScript, using a flash concept called `ExternalInterface`. The
+     * `sameDomain` value only permits movies from the embedding page's origin.
      *
      * This should only be enabled for movies you trust.
      *
      * @default false
      */
-    allowScriptAccess?: boolean;
+    allowScriptAccess?: boolean | "sameDomain";
 
     /**
      * Also known as "flashvars" - these are values that may be passed to
